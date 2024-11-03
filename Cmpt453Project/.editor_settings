@@ -1,0 +1,76 @@
+{
+  :bundle {
+    :android {
+      :architecture {
+        :arm64-android true
+        :armv7-android true
+      }
+      :format "apk"
+      :install true
+      :launch true
+    }
+    :build-report false
+    :contentless false
+    :debug-symbols false
+    :html5 {
+      :architecture {
+        :js-web false
+        :wasm-web true
+      }
+    }
+    :liveupdate false
+    :macos {
+      :architecture {
+        :arm64-macos true
+        :x86_64-macos false
+      }
+    }
+    :texture-compression "enabled"
+    :variant "release"
+  }
+  :code {
+    :find {
+      :term ""
+    }
+  }
+  :git {
+    :credentials {
+      "/Users/tristenmacpherson/Defold" {
+        :encrypted-checksum "asU8r5JFW-L9pM6uOIWUTU5vnT5KrOCkky2_kHfyCb2r2ML5GtWjbxaVHJYQ1K6_"
+        :encrypted-password "xnvx7xAfc4JRZOazfQhkgepyQrZ7KUeip9OlCSa5A3RU319QLfQJ8I_Zi2vhQdUBn0NiANHQGcob6w2RBm0LcZSxjmFZ2ASSW9njXgLJoFT2UC12ZhgMHs0ZECtoKtNDmYZ88YpMLJjeUUijlyFg-Q=="
+        :encrypted-username "mnpzbPnPbh1hZR-H1hB9fxwbefslTtPs0K7r8uCrkI4="
+      }
+      "/Users/tristenmacpherson/Desktop/VisualNovelDevelopment/Haunted" {
+        :encrypted-checksum "GIXsfty3Mm6hELIfKd9gp1hIGUjFcdbER0O2x5MYSSDNGC9J5LlVxjqkBVwdxhCe"
+        :encrypted-password "_i7VCbA9vjpH9SrU71s43tG0He54f2Y878EQH-L9cgAJ-Kbs4vlRRdIxgvDQWKiqBvPc6iDXFyPdc5KBMA8dLg=="
+        :encrypted-username "0ZK9P5MEQCZXNpBD2qz_Ly8Dgd-tfTo93w4huZhC7NM="
+      }
+      "/Users/tristenmacpherson/Discarded Whisker" {
+        :encrypted-checksum "wRJ84l3yVhL50EZxh97IQkxwCbfLmSftby5BsFwtfRWnUwaZsbnHC7kS-AHYqHfb"
+        :encrypted-password "rd_-fNYilTVoNU03XwqaA2f-xm0N01e7sQ7qJRwNllrEofgemSKsKky_34xXsYBJKNoYAO2MPrFobo1RVn9Ktg=="
+        :encrypted-username "n75VNOGmZvcx3eTdmQvhP6Qguhl6tiHWapmAf2UTlXs="
+      }
+      "/Users/tristenmacpherson/InfiniteAbyss" {
+        :encrypted-checksum "qsXtIi0tBujL5ORSjhNyLCwdB4z8DLLWzqZvi8Slu-wcphtoaSvjRFlpSYbR1JMs"
+        :encrypted-password "0v_LS0ARcDardO-x3YWG5vEUjXHaqsxRyzD2eZUUym32d-IwWeiKG60Fx1HlBYl2eARWomObYjV9Glbt9tubwQ=="
+        :encrypted-username "W_gFPDMr0-ZrIQLWIomUnbr3KatdQ98vHrmUt6rxWYc="
+      }
+    }
+  }
+  :open-assets {
+    :term "facto"
+  }
+  :search-in-files {
+    :exts ""
+    :include-libraries true
+    :term "player"
+  }
+  :workflow {
+    :recent-files [
+      [
+        "/README.md"
+        :html
+      ]
+    ]
+  }
+}
