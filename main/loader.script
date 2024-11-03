@@ -1,5 +1,5 @@
 function init(self)
-	msg.post("#proxy_level_1", "load")                      -- [1]
+	msg.post("#proxy_level_4", "load")                      -- [1]
 	msg.post(".", "acquire_input_focus")                -- [1]
 end
 
