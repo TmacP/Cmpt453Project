@@ -1,22 +1,16 @@
 name: "default"
-collection_instances {
-  id: "level"
-  collection: "/main/level_2/level_2.collection"
-  position {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale3 {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-  }
-}
 scale_along_z: 0
+embedded_instances {
+  id: "loader"
+  data: "components {\n"
+  "  id: \"loader\"\n"
+  "  component: \"/main/loader.script\"\n"
+  "}\n"
+  "embedded_components {\n"
+  "  id: \"proxy_level_1\"\n"
+  "  type: \"collectionproxy\"\n"
+  "  data: \"collection: \\\"/main/level_1/level_1.collection\\\"\\n"
+  "\"\n"
+  "}\n"
+  ""
+}
