@@ -38,5 +38,9 @@ embedded_instances {
   "  id: \"level_select\"\n"
   "  component: \"/main/level_select.gui\"\n"
   "}\n"
+  "components {\n"
+  "  id: \"start\"\n"
+  "  component: \"/main/start.gui\"\n"
+  "}\n"
   ""
 }
