@@ -1,4 +1,4 @@
-name: "default"
+name: "main"
 scale_along_z: 0
 embedded_instances {
   id: "loader"
@@ -41,6 +41,14 @@ embedded_instances {
   "components {\n"
   "  id: \"start\"\n"
   "  component: \"/main/start.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "network"
+  data: "components {\n"
+  "  id: \"test\"\n"
+  "  component: \"/main/test.script\"\n"
   "}\n"
   ""
 }

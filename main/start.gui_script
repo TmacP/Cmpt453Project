@@ -18,7 +18,10 @@ function on_input(self, action_id, action)
 		local start = gui.get_node("start")
 		if gui.pick_node(start, action.x, action.y) then                -- [3]
 			msg.post("#", "hide_start")
-			msg.post("#level_select", "show_level_select")
+			msg.post("#level_select", "show_level_select") 
+			-- print("msg.post to network")           
+			msg.post("/network#test", "start_udp")
+			
 		end
 	end
 end
