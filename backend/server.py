@@ -27,6 +27,12 @@ while True:
         sock.sendto(food_message.encode(), addr)
 
 
+    elif message == "apple":
+    # Send the food position to the client as a string (e.g., "x=5,y=10")
+        food_message = f"x={food['x']},y={food['y']}"
+        sock.sendto(food_message.encode(), addr)
+
+
     elif message in ["up", "down", "left", "right", "Connect"]:
         # Optionally, echo the received message back to the client
         sock.sendto(data, addr)
