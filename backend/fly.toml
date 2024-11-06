@@ -1,0 +1,16 @@
+app = 'cmpt453project'
+primary_region = 'ord'
+
+
+[[services]]
+  internal_port = 12345
+  protocol = "udp"
+
+  [[services.ports]]
+    port = "12345"
+
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
