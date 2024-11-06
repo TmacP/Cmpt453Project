@@ -8,7 +8,7 @@ WORKDIR /usr/src/app
 COPY server.py .
 
 # Expose the UDP port the server will use
-EXPOSE 12345/tcp
+EXPOSE 12345/udp
 
 # Run the server script
 CMD ["python", "server.py"]

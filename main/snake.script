@@ -89,7 +89,7 @@ function init(self)
 		if action_id == hash("up") and action.pressed then
 			table.insert(self.dirqueue, {x = 0, y = 1})
 
-			-- communitate to server
+			-- communicate to server
 			local message = "up"
 			self.udp:send(message)
 			print("Message sent to server:", message)
@@ -100,11 +100,11 @@ function init(self)
 			else
 				print("Error receiving response:", err)
 			end
-			
+
 		elseif action_id == hash("down") and action.pressed then
 			table.insert(self.dirqueue, {x = 0, y = -1})
 
-			-- communitate to server
+			-- communicate to server
 			local message = "down"
 			self.udp:send(message)
 			print("Message sent to server:", message)
@@ -114,12 +114,12 @@ function init(self)
 				print("Received from server:", response)
 			else
 				print("Error receiving response:", err)
-			end	
-			
+			end    
+
 		elseif action_id == hash("left") and action.pressed then
 			table.insert(self.dirqueue, {x = -1, y = 0})
 
-			-- communitate to server
+			-- communicate to server
 			local message = "left"
 			self.udp:send(message)
 			print("Message sent to server:", message)
@@ -129,12 +129,12 @@ function init(self)
 				print("Received from server:", response)
 			else
 				print("Error receiving response:", err)
-			end		
-			
+			end        
+
 		elseif action_id == hash("right") and action.pressed then
 			table.insert(self.dirqueue, {x = 1, y = 0})
 
-			-- communitate to server
+			-- communicate to server
 			local message = "right"
 			self.udp:send(message)
 			print("Message sent to server:", message)
@@ -145,7 +145,18 @@ function init(self)
 			else
 				print("Error receiving response:", err)
 			end
-			
-			
+
+		elseif action_id == hash("space") and action.pressed then
+			-- communicate to server
+			local message = "debug"
+			self.udp:send(message)
+			print("Message sent to server:", message)
+			-- Receive the echoed message from the server
+			local response, err = self.udp:receive()
+			if response then
+				print("Received from server:", response)
+			else
+				print("Error receiving response:", err)
+			end
 		end
 	end
