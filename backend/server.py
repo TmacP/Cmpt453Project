@@ -31,7 +31,6 @@ while True:
         food_message = f"x={food['x']},y={food['y']}"
         client_list = ", ".join([f"{client[0]}:{client[1]}" for client in clients])  # Format clients as IP:Port
         response_message = f"Food Position: {food_message}\nConnected Clients: {client_list}"
-        
         sock.sendto(response_message.encode(), addr)
 
 
