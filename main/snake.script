@@ -39,7 +39,13 @@ function reset_tilemap(self)
 			tilemap.set_tile("#grid", "layer1", x, y, 1)  -- Reset all tiles to 1 (empty)
 		end
 	end
+
+	-- Redraw the apple if it exists
+	if self.food then
+		tilemap.set_tile("#grid", "layer1", self.food.x, self.food.y, 3)
+	end
 end
+
 
 function init(self)
 	-- Create a UDP socket
