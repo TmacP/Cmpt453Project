@@ -24,12 +24,20 @@ local function put_food(self)
 		Print(debug_apple, "Parsed coordinates - x:", x, "y:", y)
 		self.food = {x = tonumber(x), y = tonumber(y)}
 		Print(debug_apple, "Food coordinates:", self.food.x, self.food.y)
-		--Print(debug_apple, "Type of x:", type(self.food.x), "Type of y:", type(self.food.y))
 
 		-- Update the food position on the grid (for example)
 		tilemap.set_tile("#grid", "layer1", self.food.x, self.food.y, 3)
 	else
 		Print(debug_apple, "Error receiving response:", err)
+	end
+end
+
+function reset_tilemap(self)
+	-- Loop through the grid and reset all tiles to empty (tile 1)
+	for x = 2, 47 do  -- Adjust based on your grid size
+		for y = 2, 47 do
+			tilemap.set_tile("#grid", "layer1", x, y, 1)  -- Reset all tiles to 1 (empty)
+		end
 	end
 end
 
@@ -78,8 +86,27 @@ function init(self)
 end
 
 function update(self, dt)
+	if not self.alive then
+		-- Reset the tilemap to remove old snake body and food
+		reset_tilemap(self)
+
+		-- Reset snake to single size and position when alive is false
+		self.segments = {
+			{x = 7, y = 24}  -- Set starting position here
+		}
+		self.dir = {x = 1, y = 0}  -- Set the starting direction
+		self.speed = 7.0  -- Reset speed (optional)
+		self.alive = true  -- Set alive back to true to resume playing
+		self.t = 0  -- Reset timer
+
+		-- Optionally, place the food again (since it was cleared during the reset)
+		put_food(self)
+
+		return  -- Skip the rest of the update loop and return to start fresh
+	end
+
 	self.t = self.t + dt
-	if self.t >= 1.0 / self.speed and self.alive then
+	if self.t >= 1.0 / self.speed then
 		local newdir = table.remove(self.dirqueue, 1)
 
 		if newdir then
@@ -96,9 +123,11 @@ function update(self, dt)
 
 		local tile = tilemap.get_tile("#grid", "layer1", newhead.x, newhead.y)
 
+		-- Handle collision with walls (tile 4)
 		if tile == 2 or tile == 4 then
+			-- Set alive to false so the snake will reset in the next frame
 			self.alive = false
-		elseif tile == 3 then
+		elseif tile == 3 then  -- Apple tile
 			self.speed = self.speed + 1
 			put_food(self)  -- Send "apple" message to server when the apple is eaten
 		else
@@ -106,6 +135,7 @@ function update(self, dt)
 			tilemap.set_tile("#grid", "layer1", tail.x, tail.y, 1)
 		end
 
+		-- Update the grid with the new snake segments
 		for i, s in ipairs(self.segments) do
 			tilemap.set_tile("#grid", "layer1", s.x, s.y, 2)
 		end
@@ -133,8 +163,7 @@ function update(self, dt)
 		-- Allow a short sleep to prevent the socket from blocking the game loop
 		socket.sleep(0.001)  -- Sleep for 50ms, adjust based on the desired responsiveness
 
-
-		-- reset timer 
+		-- Reset timer
 		self.t = 0
 	end
 end
@@ -198,19 +227,6 @@ function on_input(self, action_id, action)
 			Print(debug_movement, "Received from server:", response)
 		else
 			Print(debug_movement, "Error receiving response:", err)
-		end
-
-	elseif action_id == hash("space") and action.pressed then
-		-- communicate to server
-		local message = "debug"
-		self.udp:send(message)
-		Print(debug, "Message sent to server:", message)
-		-- Receive the echoed message from the server
-		local response, err = self.udp:receive()
-		if response then
-			Print(debug, "Received from server:", response, "\n")
-		else
-			Print(debug, "Error receiving response:", err)
 		end
 	end
 end
