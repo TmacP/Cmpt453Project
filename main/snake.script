@@ -1,5 +1,6 @@
 require "main.Print"
 local debug = true
+local debug_movement = false
 
 local socket = require("socket")
 
@@ -116,13 +117,13 @@ function on_input(self, action_id, action)
 		-- communicate to server
 		local message = "up"
 		self.udp:send(message)
-		Print(debug, "Message sent to server:", message)
+		Print(debug_movement, "Message sent to server:", message)
 		-- Receive the echoed message from the server
 		local response, err = self.udp:receive()
 		if response then
-			Print(debug, "Received from server:", response)
+			Print(debug_movement, "Received from server:", response)
 		else
-			Print(debug, "Error receiving response:", err)
+			Print(debug_movement, "Error receiving response:", err)
 		end
 
 	elseif action_id == hash("down") and action.pressed then
@@ -131,13 +132,13 @@ function on_input(self, action_id, action)
 		-- communicate to server
 		local message = "down"
 		self.udp:send(message)
-		Print(debug, "Message sent to server:", message)
+		Print(debug_movement, "Message sent to server:", message)
 		-- Receive the echoed message from the server
 		local response, err = self.udp:receive()
 		if response then
-			Print(debug, "Received from server:", response)
+			Print(debug_movement, "Received from server:", response)
 		else
-			Print(debug, "Error receiving response:", err)
+			Print(debug_movement, "Error receiving response:", err)
 		end
 
 	elseif action_id == hash("left") and action.pressed then
@@ -146,13 +147,13 @@ function on_input(self, action_id, action)
 		-- communicate to server
 		local message = "left"
 		self.udp:send(message)
-		Print(debug, "Message sent to server:", message)
+		Print(debug_movement, "Message sent to server:", message)
 		-- Receive the echoed message from the server
 		local response, err = self.udp:receive()
 		if response then
-			Print(debug, "Received from server:", response)
+			Print(debug_movement, "Received from server:", response)
 		else
-			Print(debug, "Error receiving response:", err)
+			Print(debug_movement, "Error receiving response:", err)
 		end
 
 	elseif action_id == hash("right") and action.pressed then
@@ -161,13 +162,13 @@ function on_input(self, action_id, action)
 		-- communicate to server
 		local message = "right"
 		self.udp:send(message)
-		Print(debug, "Message sent to server:", message)
+		Print(debug_movement, "Message sent to server:", message)
 		-- Receive the echoed message from the server
 		local response, err = self.udp:receive()
 		if response then
-			Print(debug, "Received from server:", response)
+			Print(debug_movement, "Received from server:", response)
 		else
-			Print(debug, "Error receiving response:", err)
+			Print(debug_movement, "Error receiving response:", err)
 		end
 
 	elseif action_id == hash("space") and action.pressed then
