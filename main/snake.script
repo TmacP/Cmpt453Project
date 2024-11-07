@@ -1,28 +1,33 @@
+require "main.Print"
+local debug = true
+
 local socket = require("socket")
 
 local function put_food(self)
 	-- Send a message to the server indicating the apple has been eaten
 	local message = "apple"
 	self.udp:send(message)
-	print("Message sent to server:", message)
+	Print(debug, "Message sent to server:", message)
 
 	-- Receive the new food position from the server
 	local response, err = self.udp:receive()
 	if response then
-		print("Received from server:", response)
+		Print(debug, "Received from server:", response)
 
 		-- Parse the response and extract the new food coordinates
 		local x, y = response:match("x=(%d+),y=(%d+)")
 		-- Print the parsed coordinates
-		print("Parsed coordinates - x:", x, "y:", y)
-		--self.food = {x = tonumber(x), y = tonumber(y)}
+		Print(debug, "Parsed coordinates - x:", x, "y:", y)
+		self.food = {x = tonumber(x), y = tonumber(y)}
+		--self.food = {x = 17, y = 16}
 		--self.food = {x = math.random(2, 47), y = math.random(2, 47)}
-		print(self.food.x, self.food.y )
+		Print(debug, "Food coordinates:", self.food.x, self.food.y)
+		Print(debug, "Type of x:", type(self.food.x), "Type of y:", type(self.food.y))
 
 		-- Update the food position on the grid (for example)
 		tilemap.set_tile("#grid", "layer1", self.food.x, self.food.y, 3)
 	else
-		print("Error receiving response:", err)
+		Print(debug, "Error receiving response:", err)
 	end
 end
 
@@ -39,13 +44,13 @@ function init(self)
 
 	local message = "Connect"
 	self.udp:send(message)
-	print("Message sent to server:", message)
+	Print(debug, "Message sent to server:", message)
 	-- Receive the echoed message from the server
 	local response, err = self.udp:receive()
 	if response then
-		print("Received from server:", response)
+		Print(debug, "Received from server:", response)
 	else
-		print("Error receiving response:", err)
+		Print(debug, "Error receiving response:", err)
 	end
 
 	-- Get input
@@ -111,13 +116,13 @@ function on_input(self, action_id, action)
 		-- communicate to server
 		local message = "up"
 		self.udp:send(message)
-		print("Message sent to server:", message)
+		Print(debug, "Message sent to server:", message)
 		-- Receive the echoed message from the server
 		local response, err = self.udp:receive()
 		if response then
-			print("Received from server:", response)
+			Print(debug, "Received from server:", response)
 		else
-			print("Error receiving response:", err)
+			Print(debug, "Error receiving response:", err)
 		end
 
 	elseif action_id == hash("down") and action.pressed then
@@ -126,13 +131,13 @@ function on_input(self, action_id, action)
 		-- communicate to server
 		local message = "down"
 		self.udp:send(message)
-		print("Message sent to server:", message)
+		Print(debug, "Message sent to server:", message)
 		-- Receive the echoed message from the server
 		local response, err = self.udp:receive()
 		if response then
-			print("Received from server:", response)
+			Print(debug, "Received from server:", response)
 		else
-			print("Error receiving response:", err)
+			Print(debug, "Error receiving response:", err)
 		end
 
 	elseif action_id == hash("left") and action.pressed then
@@ -141,13 +146,13 @@ function on_input(self, action_id, action)
 		-- communicate to server
 		local message = "left"
 		self.udp:send(message)
-		print("Message sent to server:", message)
+		Print(debug, "Message sent to server:", message)
 		-- Receive the echoed message from the server
 		local response, err = self.udp:receive()
 		if response then
-			print("Received from server:", response)
+			Print(debug, "Received from server:", response)
 		else
-			print("Error receiving response:", err)
+			Print(debug, "Error receiving response:", err)
 		end
 
 	elseif action_id == hash("right") and action.pressed then
@@ -156,26 +161,27 @@ function on_input(self, action_id, action)
 		-- communicate to server
 		local message = "right"
 		self.udp:send(message)
-		print("Message sent to server:", message)
+		Print(debug, "Message sent to server:", message)
 		-- Receive the echoed message from the server
 		local response, err = self.udp:receive()
 		if response then
-			print("Received from server:", response)
+			Print(debug, "Received from server:", response)
 		else
-			print("Error receiving response:", err)
+			Print(debug, "Error receiving response:", err)
 		end
 
 	elseif action_id == hash("space") and action.pressed then
 		-- communicate to server
 		local message = "debug"
 		self.udp:send(message)
-		print("Message sent to server:", message)
+		Print(debug, "Message sent to server:", message)
 		-- Receive the echoed message from the server
 		local response, err = self.udp:receive()
 		if response then
-			print("Received from server:", response)
+			Print(debug, "Received from server:", response)
 		else
-			print("Error receiving response:", err)
+			Print(debug, "Error receiving response:", err)
 		end
+		put_food(self)
 	end
 end
