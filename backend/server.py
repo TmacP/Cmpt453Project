@@ -29,6 +29,7 @@ while True:
 
     elif message == "apple":
     # Send the food position to the client as a string (e.g., "x=5,y=10")
+        food = generate_food()
         food_message = f"x={food['x']},y={food['y']}"
         sock.sendto(food_message.encode(), addr)
 
