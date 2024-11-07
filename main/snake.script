@@ -3,6 +3,7 @@ local debug = true
 local debug_connect = true
 local debug_apple = false
 local debug_movement = false
+local debug_update = true
 
 local socket = require("socket")
 
@@ -23,7 +24,7 @@ local function put_food(self)
 		Print(debug_apple, "Parsed coordinates - x:", x, "y:", y)
 		self.food = {x = tonumber(x), y = tonumber(y)}
 		Print(debug_apple, "Food coordinates:", self.food.x, self.food.y)
-		Print(debug_apple, "Type of x:", type(self.food.x), "Type of y:", type(self.food.y))
+		--Print(debug_apple, "Type of x:", type(self.food.x), "Type of y:", type(self.food.y))
 
 		-- Update the food position on the grid (for example)
 		tilemap.set_tile("#grid", "layer1", self.food.x, self.food.y, 3)
@@ -41,7 +42,7 @@ function init(self)
 	-- Connect to the server
 	self.udp:setpeername(server_ip, server_port)
 	-- Set a timeout for receiving data (in seconds)
-	self.udp:settimeout(2)
+	self.udp:settimeout(0.1)
 
 	local message = "Connect"
 	self.udp:send(message)
@@ -109,6 +110,31 @@ function update(self, dt)
 			tilemap.set_tile("#grid", "layer1", s.x, s.y, 2)
 		end
 
+		-- Attempt to receive from the server without blocking
+		local response, err = self.udp:receive()
+		if response then
+			-- Handle the server response (for example, updating food position)
+			local x, y = response:match("x=(%d+),y=(%d+)")
+			if x and y then
+				-- If food has moved, update the old food position to tile 1 (empty)
+				if self.food then
+					tilemap.set_tile("#grid", "layer1", self.food.x, self.food.y, 1)
+				end
+				-- Update the food position
+				self.food = {x = tonumber(x), y = tonumber(y)}
+				tilemap.set_tile("#grid", "layer1", self.food.x, self.food.y, 3)
+			end
+			Print(debug_update, "Received from server:", response)
+		elseif err ~= "timeout" then
+			-- If there is an error other than timeout, print it
+			Print(debug_update, "Error receiving response:", err)
+		end
+
+		-- Allow a short sleep to prevent the socket from blocking the game loop
+		socket.sleep(0.001)  -- Sleep for 50ms, adjust based on the desired responsiveness
+
+
+		-- reset timer 
 		self.t = 0
 	end
 end
