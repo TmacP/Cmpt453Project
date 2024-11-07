@@ -69,6 +69,7 @@ function init(self)
 	-- Get input
 	msg.post(".", "acquire_input_focus")
 
+	-- Initialize the snake's segments to the starting size of 4
 	self.segments = {
 		{x = 7, y = 24},
 		{x = 8, y = 24},
@@ -90,9 +91,12 @@ function update(self, dt)
 		-- Reset the tilemap to remove old snake body and food
 		reset_tilemap(self)
 
-		-- Reset snake to single size and position when alive is false
+		-- Reset snake to the initial size and position when alive is false
 		self.segments = {
-			{x = 7, y = 24}  -- Set starting position here
+			{x = 7, y = 24},
+			{x = 8, y = 24},
+			{x = 9, y = 24},
+			{x = 10, y = 24}
 		}
 		self.dir = {x = 1, y = 0}  -- Set the starting direction
 		self.speed = 7.0  -- Reset speed (optional)
@@ -100,7 +104,7 @@ function update(self, dt)
 		self.t = 0  -- Reset timer
 
 		-- Optionally, place the food again (since it was cleared during the reset)
-		put_food(self)
+
 
 		return  -- Skip the rest of the update loop and return to start fresh
 	end
