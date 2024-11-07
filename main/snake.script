@@ -1,5 +1,5 @@
 require "main.Print"
-local debug = false
+local debug = true
 local debug_connect = true
 local debug_apple = false
 local debug_movement = false
@@ -20,15 +20,15 @@ local function put_food(self)
 		-- Parse the response and extract the new food coordinates
 		local x, y = response:match("x=(%d+),y=(%d+)")
 		-- Print the parsed coordinates
-		Print(debug, "Parsed coordinates - x:", x, "y:", y)
+		Print(debug_apple, "Parsed coordinates - x:", x, "y:", y)
 		self.food = {x = tonumber(x), y = tonumber(y)}
-		Print(debug, "Food coordinates:", self.food.x, self.food.y)
-		Print(debug, "Type of x:", type(self.food.x), "Type of y:", type(self.food.y))
+		Print(debug_apple, "Food coordinates:", self.food.x, self.food.y)
+		Print(debug_apple, "Type of x:", type(self.food.x), "Type of y:", type(self.food.y))
 
 		-- Update the food position on the grid (for example)
 		tilemap.set_tile("#grid", "layer1", self.food.x, self.food.y, 3)
 	else
-		Print(debug, "Error receiving response:", err)
+		Print(debug_apple, "Error receiving response:", err)
 	end
 end
 
@@ -49,7 +49,7 @@ function init(self)
 	-- Receive the echoed message from the server
 	local response, err = self.udp:receive()
 	if response then
-		Print(debug_connect, "Received from server:", response)
+		Print(debug_connect, "Received from server:", response, "\n")
 		local x, y = response:match("x=(%d+),y=(%d+)")
 		self.food = {x = tonumber(x), y = tonumber(y)}
 		tilemap.set_tile("#grid", "layer1", self.food.x, self.food.y, 3)
@@ -182,10 +182,9 @@ function on_input(self, action_id, action)
 		-- Receive the echoed message from the server
 		local response, err = self.udp:receive()
 		if response then
-			Print(debug, "Received from server:", response)
+			Print(debug, "Received from server:", response, "\n")
 		else
 			Print(debug, "Error receiving response:", err)
 		end
-		put_food(self)
 	end
 end
