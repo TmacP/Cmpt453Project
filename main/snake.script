@@ -1,4 +1,6 @@
 require "main.Print"
+
+
 local debug = true
 local debug_connect = true
 local debug_apple = false
@@ -23,14 +25,20 @@ local function put_food(self)
 		-- Print the parsed coordinates
 		Print(debug_apple, "Parsed coordinates - x:", x, "y:", y)
 		self.food = {x = tonumber(x), y = tonumber(y)}
-		Print(debug_apple, "Food coordinates:", self.food.x, self.food.y)
+		Print(debug_apple, "Food coordinates:", self.food.x, "y:", self.food.y)
 
-		-- Update the food position on the grid (for example)
+		-- Move the apple game object to the new position
+		print("Setting apple position to:", self.food.x, self.food.y)
+		local p =  go.get_id("light_source")
+		print(go.set_position(vmath.vector3(self.food.x * 16, self.food.y * 16, 0), p))
+
+		-- Optionally, update the tilemap if you need to reflect it visually
 		tilemap.set_tile("#grid", "layer1", self.food.x, self.food.y, 3)
 	else
 		Print(debug_apple, "Error receiving response:", err)
 	end
 end
+
 
 function reset_tilemap(self)
 	-- Loop through the grid and reset all tiles to empty (tile 1)
@@ -67,7 +75,7 @@ function init(self)
 		Print(debug_connect, "Received from server:", response, "\n")
 		local x, y = response:match("x=(%d+),y=(%d+)")
 		self.food = {x = tonumber(x), y = tonumber(y)}
-		tilemap.set_tile("#grid", "layer1", self.food.x, self.food.y, 3)
+		put_food(self)
 	else
 		Print(debug_connect, "Error receiving response:", err)
 	end
@@ -110,8 +118,6 @@ function update(self, dt)
 		self.t = 0  -- Reset timer
 
 		-- Optionally, place the food again (since it was cleared during the reset)
-
-
 		return  -- Skip the rest of the update loop and return to start fresh
 	end
 
@@ -150,6 +156,12 @@ function update(self, dt)
 			tilemap.set_tile("#grid", "layer1", s.x, s.y, 2)
 		end
 
+		-- Move the light source with the snake's head
+		local light_source_id = go.get_id("light_source1")
+		print("Moving light source to head position:", newhead.x, newhead.y)
+		-- Optionally add an offset if you want the light source to be slightly away from the head
+		go.set_position(vmath.vector3(newhead.x * 16, newhead.y * 16, 0), light_source_id)
+
 		-- Attempt to receive from the server without blocking
 		local response, err = self.udp:receive()
 		if response then
@@ -177,6 +189,7 @@ function update(self, dt)
 		self.t = 0
 	end
 end
+
 
 function on_input(self, action_id, action)
 	if action_id == hash("up") and action.pressed then
