@@ -1,4 +1,24 @@
 name: "main"
+instances {
+  id: "light_quad"
+  prototype: "/lights/render/light_quad.go"
+}
+instances {
+  id: "light_source"
+  prototype: "/main/light_source.go"
+  position {
+    x: 631.0
+    y: 639.0
+  }
+  component_properties {
+    id: "lightsource"
+    properties {
+      id: "color"
+      value: "1.0, 0.5, 0.0, 1.0"
+      type: PROPERTY_TYPE_VECTOR4
+    }
+  }
+}
 scale_along_z: 0
 embedded_instances {
   id: "snake"

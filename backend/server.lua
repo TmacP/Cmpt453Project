@@ -1,8 +1,9 @@
 local socket = require("socket")
 local math = require("math")
 
+
 -- Server configuration
-local UDP_IP = "fly-global-services"  -- Listening on all IP addresses
+local UDP_IP = "0.0.0.0"--"fly-global-services"  -- Listening on all IP addresses
 local UDP_PORT = 12345
 
 -- Create a UDP socket and bind it to the server address
@@ -18,6 +19,8 @@ end
 -- Initialize food and client tracking
 local food = {}
 local clients = {}
+
+print "Begin server"
 
 while true do
     -- Wait to receive a message from a client
