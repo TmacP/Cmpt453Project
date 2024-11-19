@@ -29,8 +29,6 @@ local function put_food(self)
 
 		-- Move the apple game object to the new position
 		print("Setting apple position to:", self.food.x, self.food.y)
-		local p =  go.get_id("light_source")
-		print(go.set_position(vmath.vector3(self.food.x * 16, self.food.y * 16, 0), p))
 
 		-- Optionally, update the tilemap if you need to reflect it visually
 		tilemap.set_tile("#grid", "layer1", self.food.x, self.food.y, 3)
@@ -156,11 +154,6 @@ function update(self, dt)
 			tilemap.set_tile("#grid", "layer1", s.x, s.y, 2)
 		end
 
-		-- Move the light source with the snake's head
-		local light_source_id = go.get_id("light_source1")
-		print("Moving light source to head position:", newhead.x, newhead.y)
-		-- Optionally add an offset if you want the light source to be slightly away from the head
-		go.set_position(vmath.vector3(newhead.x * 16, newhead.y * 16, 0), light_source_id)
 
 		-- Attempt to receive from the server without blocking
 		local response, err = self.udp:receive()

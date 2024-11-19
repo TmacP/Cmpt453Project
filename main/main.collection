@@ -1,46 +1,4 @@
 name: "main"
-instances {
-  id: "light_quad"
-  prototype: "/lights/render/light_quad.go"
-}
-instances {
-  id: "light_source"
-  prototype: "/main/light_source.go"
-  component_properties {
-    id: "lightsource"
-    properties {
-      id: "color"
-      value: "1.0, 0.0, 0.0, 0.15"
-      type: PROPERTY_TYPE_VECTOR4
-    }
-    properties {
-      id: "falloff"
-      value: "5.0"
-      type: PROPERTY_TYPE_NUMBER
-    }
-  }
-}
-instances {
-  id: "light_source1"
-  prototype: "/main/light_source.go"
-  position {
-    x: 392.0
-    y: 316.0
-  }
-  component_properties {
-    id: "lightsource"
-    properties {
-      id: "color"
-      value: "0.0, 1.0, 0.0, 0.25"
-      type: PROPERTY_TYPE_VECTOR4
-    }
-    properties {
-      id: "falloff"
-      value: "5.0"
-      type: PROPERTY_TYPE_NUMBER
-    }
-  }
-}
 scale_along_z: 0
 embedded_instances {
   id: "snake"
