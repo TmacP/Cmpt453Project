@@ -1,75 +1,14 @@
-local SCREEN_MIN_X = 0
-local SCREEN_MAX_X = 360 -- Replace with actual screen width
-local SCREEN_MIN_Y = 0
-local SCREEN_MAX_Y = 640 -- Replace with actual screen height
+local host, port = "127.0.0.1", 12345
+local socket = require("socket")
+local tcp = assert(socket.tcp())
 
--- Function to generate a random direction while ensuring it stays in bounds
-local function generate_random_direction(self)
-	local angle = math.rad(math.random(0, 360))
-	local dir = {x = math.cos(angle), y = math.sin(angle)}
+tcp:connect(host, port);
+--note the newline below
+tcp:send("hello world\n");
 
-	-- Predict new position and reverse direction if it would go out of bounds
-	local future_x = self.position.x + dir.x * self.speed * self.swim_time
-	local future_y = self.position.y + dir.y * self.speed * self.swim_time
-
-	if future_x < SCREEN_MIN_X or future_x > SCREEN_MAX_X then
-		dir.x = -dir.x
-	end
-	if future_y < SCREEN_MIN_Y or future_y > SCREEN_MAX_Y then
-		dir.y = -dir.y
-	end
-
-	return dir
+while true do
+	local s, status, partial = tcp:receive()
+	print(s or partial)
+	if status == "closed" then break end
 end
-
--- Function to rotate the koi to face its direction
-local function rotate_to_direction(direction)
-	-- Adjust for the initial sprite facing direction (assuming it's facing "up")
-	local angle = math.atan2(direction.y, direction.x) -- Angle in radians
-
-	-- Rotate the sprite to face the correct direction
-	go.set(".", "rotation", vmath.quat_rotation_z(angle - math.pi / 2))  -- Subtracting pi/2 to account for the sprite's initial "up" direction
-end
-
--- Function to make the koi swim smoothly
-local function swim(self)
-	-- Calculate the target position based on the current direction
-	local target_position = vmath.vector3(
-	self.position.x + self.direction.x * self.speed,
-	self.position.y + self.direction.y * self.speed,
-	0
-)
-
--- Rotate the koi to face the direction
-rotate_to_direction(self.direction)
-
--- Animate the koi to the target position smoothly
-go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD,
-target_position,
-go.EASING_LINEAR,
-self.swim_time,
-0,
-function()  -- Callback after the animation completes
-	self.direction = generate_random_direction(self) -- Generate a new direction
-	swim(self) -- Continue swimming
-end
-)
-end
-
-function init(self)
--- Set up initial koi properties
-self.position = go.get_position() -- Initial position
-self.speed = 100 -- Swimming speed (adjust as needed)
-self.swim_time = 2.0 -- Time it takes to swim to the next position
-
--- Generate the first direction
-self.direction = generate_random_direction(self)
-
--- Start swimming
-swim(self)
-end
-
-function update(self, dt)
--- Update koi position for visuals (optional)
-self.position = go.get_position()
-end
+tcp:close()
