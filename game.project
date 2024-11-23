@@ -5,8 +5,8 @@ main_collection = /main/main.collectionc
 shared_state = 1
 
 [display]
-width = 768
-height = 768
+width = 360
+height = 640
 high_dpi = 0
 
 [android]

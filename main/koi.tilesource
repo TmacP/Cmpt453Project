@@ -1,0 +1,12 @@
+image: "/main/koi.png"
+tile_width: 32
+tile_height: 32
+collision_groups: "koi"
+animations {
+  id: "anim"
+  start_tile: 1
+  end_tile: 4
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 10
+}
+extrude_borders: 2
