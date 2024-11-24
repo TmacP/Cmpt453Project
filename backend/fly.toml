@@ -4,7 +4,7 @@ primary_region = 'ord'
 
 [[services]]
   internal_port = 12345
-  protocol = "udp"
+  protocol = "tcp"
 
   [[services.ports]]
     port = "12345"

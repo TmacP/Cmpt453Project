@@ -4,7 +4,7 @@ import random
 import time
 import math
 
-TCP_HOST = '127.0.0.1'
+TCP_HOST = '0.0.0.0'
 TCP_PORT = 12345
 
 # Global dictionary to store koi positions by ID

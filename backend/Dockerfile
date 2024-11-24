@@ -1,14 +1,10 @@
-# Use an official Alpine image as a base, as it’s lightweight and easy to install Lua on
-FROM python3
 
-# Set the working directory in the container
+FROM python:3
+
 WORKDIR /usr/src/app
 
-# Copy the Lua server script into the container
 COPY server.py .
 
-# Expose the UDP port the server will use
-EXPOSE 12345/udp
+EXPOSE 12345/tcp
 
-# Run the server script
 CMD ["python3", "server.py"]

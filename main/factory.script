@@ -1,6 +1,6 @@
 local socket = require("socket")
 
-local host, port = "127.0.0.1", 12345
+local host, port = "66.51.126.183", 12345
 local tcp = nil
 local koi_positions = {}  -- To store all koi positions
 local koi_instances = {}  -- To store spawned koi game objects
