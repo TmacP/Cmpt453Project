@@ -1,5 +1,6 @@
 import socket
 import threading
+import random
 import time
 
 TCP_HOST = '127.0.0.1'
@@ -8,6 +9,9 @@ TCP_PORT = 12345
 # Global dictionary to store koi positions by ID
 koi_positions = {}
 lock = threading.Lock()
+
+# Fixed tick rate (e.g., 60 ticks per second)
+TICK_RATE = 60.0 / 60.0  # 60 Hz (game tick every 1/60th of a second)
 
 def handle_client(client_socket, address):
     global koi_positions
@@ -19,14 +23,16 @@ def handle_client(client_socket, address):
         # Assign a new koi position for the client on connection
         client_id = str(address)  # Assign a unique client_id, can be address or custom ID
         
-        # Default koi position, could be randomized or predefined
-        koi_positions[client_id] = (100, 200)  # Assign a default starting position
+        # Randomize koi position for the client
+        x = random.randint(0, 360)  # Random X position
+        y = random.randint(0, 640)  # Random Y position
+        koi_positions[client_id] = (x, y)
         print(f"Assigned koi position to {client_id}: {koi_positions[client_id]}")
         
-        # Send the updated koi positions list to the client
+        # Send the updated koi positions list to the client (excluding its own position)
         with lock:
             all_positions = "\n".join(
-                f"{id}:{x},{y}" for id, (x, y) in koi_positions.items()
+                f"{id}:{x},{y}" for id, (x, y) in koi_positions.items() if id != client_id
             )
             print(f"Sending all koi positions to {address}: {all_positions}")
         
@@ -56,10 +62,10 @@ def handle_client(client_socket, address):
                 print(f"Error parsing data from {address}: {e}")
                 continue
 
-            # Broadcast all koi positions to the client
+            # Broadcast all koi positions to all clients except the sender
             with lock:
                 all_positions = "\n".join(
-                    f"{id}:{x},{y}" for id, (x, y) in koi_positions.items()
+                    f"{id}:{x},{y}" for id, (x, y) in koi_positions.items() if id != client_id
                 )
                 print(f"Sending all koi positions to {address}: {all_positions}")
             
@@ -77,6 +83,29 @@ def handle_client(client_socket, address):
         client_socket.close()
 
 
+def game_tick():
+    """Game tick function that updates koi positions and sends them to clients"""
+    while True:
+        time.sleep(TICK_RATE)
+        
+        with lock:
+            # Example: Move each koi by a fixed amount (you can modify this logic)
+            for client_id, (x, y) in koi_positions.items():
+                # Move koi by a small amount on each tick (adjust movement logic as needed)
+                x += random.randint(-1, 1)  # Random horizontal movement
+                y += random.randint(-1, 1)  # Random vertical movement
+                koi_positions[client_id] = (x, y)
+        
+        # Broadcast updated positions to all clients
+        with lock:
+            all_positions = "\n".join(
+                f"{id}:{x},{y}" for id, (x, y) in koi_positions.items()
+            )
+            print(f"Sending updated koi positions: {all_positions}")
+        
+        # In a real implementation, here you would send the updated positions to all connected clients
+        # (assuming you're using a global connection manager)
+
 def start_server():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -84,6 +113,10 @@ def start_server():
     server_socket.listen(5)
 
     print(f"Server started on {TCP_HOST}:{TCP_PORT}")
+    
+    # Start the game tick thread
+    threading.Thread(target=game_tick, daemon=True).start()
+    
     try:
         while True:
             client_socket, address = server_socket.accept()

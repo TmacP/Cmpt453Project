@@ -1,7 +1,3 @@
-components {
-  id: "koi"
-  component: "/main/koi.script"
-}
 embedded_components {
   id: "sprite"
   type: "sprite"
