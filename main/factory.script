@@ -1,12 +1,9 @@
 local socket = require("socket")
 
-local host, port = "0.0.0.0", 12345 --"66.51.126.183"
+local host, port = "0.0.0.0", 12345 -- Server address
 local tcp = nil
-local koi_positions = {}  -- To store all koi positions
-local koi_instances = {}  -- To store spawned koi game objects
-local local_koi_id = nil  -- To store the local koi's ID
-
-local TICK_RATE = 1 / 60  -- 60 Hz (game tick every 1/60th of a second)
+local koi_data = {}  -- Single table to store koi instances and positions
+local local_koi_id = nil  -- Unique ID for the local koi
 local factory_url = "#koi_factory"  -- Factory URL for spawning koi
 
 -- Called once when the script is initialized
@@ -14,115 +11,89 @@ function init(self)
 	tcp = assert(socket.tcp())
 	tcp:connect(host, port)
 	tcp:settimeout(0)
-	print("Connected to server")
 
-	-- Assign a unique ID for the local koi
+	-- Generate a unique ID for the local koi
 	local_koi_id = "local_koi_" .. tostring(os.time())
-	print("Local Koi ID: " .. local_koi_id)
+	print("Initialized with Local Koi ID:", local_koi_id)
 end
 
 -- Send the local koi's position to the server
-function send_koi_position(koi_id, position)
+local function send_koi_position(koi_id, position)
 	if tcp then
 		local data = string.format("%s:%f,%f\n", koi_id, position.x, position.y)
 		tcp:send(data)
 	end
 end
 
--- Receive koi positions from the server
-function receive_koi_positions()
+-- Receive and parse koi positions from the server
+local function receive_koi_positions()
 	if tcp then
-		local data, status, partial = tcp:receive()
-		if data or partial then
-			local response = data or partial
-			print("Received koi positions:", response)
-			local new_positions = {}
+		local data = tcp:receive()
+		if data then
+			for line in data:gmatch("[^\n]+") do
+				local id, pos = line:match("([^:]+):([^:]+)")
+				if id and pos then
+					local x, y = pos:match("([^,]+),([^,]+)")
+					if x and y then
+						local position = vmath.vector3(tonumber(x), tonumber(y), 0)
 
-			if response ~= "" then
-				for line in response:gmatch("[^\n]+") do
-					local id, pos = line:match("([^:]+):([^:]+)")
-					if id and pos then
-						local x, y = pos:match("([^,]+),([^,]+)")
-						if x and y then
-							new_positions[id] = vmath.vector3(tonumber(x), tonumber(y), 0)
+						-- Update position in koi_data
+						if not koi_data[id] then
+							koi_data[id] = { instance = nil, position = position }
+						else
+							koi_data[id].position = position
 						end
 					end
 				end
-
-				-- Update koi positions
-				koi_positions = new_positions
-			else
-				print("Empty data received, ignoring.")
 			end
 		end
 	end
 end
 
--- Manage koi instances (spawn or update positions)
-function update_koi_instances()
-	for id, position in pairs(koi_positions) do
-		if not koi_instances[id] then
-			-- Spawn koi only if it doesn't already exist
-			spawn_koi(id, position)
-		else
-			-- Update the koi's position
-			update_koi_position(id, position)
-		end
-	end
-end
-
--- Spawn a koi game object using Defold factory
-function spawn_koi(id, position)
-	print("Spawning koi at " .. tostring(position))
-
-	if factory_url then
-		-- Spawn the koi object using the factory
+-- Spawn a koi game object if it doesn't exist
+local function spawn_koi(id, position)
+	if not koi_data[id].instance then
 		local koi = factory.create(factory_url, position)
-		koi_instances[id] = koi  -- Correctly associate the spawned koi with its unique ID
-		print("Koi " .. id .. " spawned at " .. tostring(position))
-	else
-		print("Factory not found! Ensure the factory URL is correct.")
+		koi_data[id].instance = koi
+		print("Spawned koi:", id, "at", position)
 	end
 end
 
--- Update the koi's position in the game world and rotate it to face the movement direction
-function update_koi_position(id, position)
-	if koi_instances[id] then
-		-- Update position of the spawned koi
-		local current_position = go.get_position(koi_instances[id])
-		go.set_position(position, koi_instances[id])
+-- Update an existing koi's position and rotation
+local function update_koi_position(id, position)
+	local koi_entry = koi_data[id]
+	if koi_entry and koi_entry.instance then
+		local current_position = go.get_position(koi_entry.instance)
+		go.set_position(position, koi_entry.instance)
 
-		-- Calculate the direction vector from the previous position to the current position
-		local dx = position.x - current_position.x
-		local dy = position.y - current_position.y
-
-		-- If the koi is moving, calculate the angle to rotate towards
+		-- Calculate rotation to face movement direction
+		local dx, dy = position.x - current_position.x, position.y - current_position.y
 		if dx ~= 0 or dy ~= 0 then
-			-- Calculate the angle (in radians) to the direction of movement
-			local angle = math.atan2(dy, dx)
-
-			-- Apply a rotation offset if necessary (for example, rotating by 90 degrees or pi/2 radians)
-			local adjusted_angle = angle - math.pi / 2  -- Adjusting by -pi/2 (90 degrees counterclockwise)
-
-			-- Set the koi's rotation to face the direction of movement (Z-axis rotation)
-			go.set_rotation(vmath.quat_rotation_z(adjusted_angle), koi_instances[id])
-
-			print("Updated position of koi " .. id .. " to " .. tostring(position) .. " with rotation " .. adjusted_angle)
+			local angle = math.atan2(dy, dx) - math.pi / 2  -- Adjust rotation
+			go.set_rotation(vmath.quat_rotation_z(angle), koi_entry.instance)
 		end
 	end
 end
 
-
-
-
+-- Manage koi instances (spawn or update positions)
+local function update_koi_instances()
+	for id, data in pairs(koi_data) do
+		if not data.instance then
+			spawn_koi(id, data.position)
+		else
+			update_koi_position(id, data.position)
+		end
+	end
+end
 
 -- Called every frame
 function update(self, dt)
-	receive_koi_positions()  -- Receive positions from the server
-	update_koi_instances()   -- Update local koi and other koi instances
+	-- Receive server updates and sync koi positions
+	receive_koi_positions()
+	update_koi_instances()
 
-	if koi_instances[local_koi_id] then
-		-- Send local koi's updated position to the server
-		send_koi_position(local_koi_id, go.get_position(koi_instances[local_koi_id]))
+	-- Send local koi's position to the server
+	if koi_data[local_koi_id] and koi_data[local_koi_id].instance then
+		send_koi_position(local_koi_id, go.get_position(koi_data[local_koi_id].instance))
 	end
 end
