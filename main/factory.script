@@ -19,8 +19,6 @@ function init(self)
 	-- Assign a unique ID for the local koi
 	local_koi_id = "local_koi_" .. tostring(os.time())
 	print("Local Koi ID: " .. local_koi_id)
-
-
 end
 
 -- Send the local koi's position to the server
@@ -87,19 +85,42 @@ function spawn_koi(id, position)
 	end
 end
 
--- Update the koi's position in the game world
+-- Update the koi's position in the game world and rotate it to face the movement direction
 function update_koi_position(id, position)
 	if koi_instances[id] then
 		-- Update position of the spawned koi
+		local current_position = go.get_position(koi_instances[id])
 		go.set_position(position, koi_instances[id])
-		print("Updated position of koi " .. id .. " to " .. tostring(position))
+
+		-- Calculate the direction vector from the previous position to the current position
+		local dx = position.x - current_position.x
+		local dy = position.y - current_position.y
+
+		-- If the koi is moving, calculate the angle to rotate towards
+		if dx ~= 0 or dy ~= 0 then
+			-- Calculate the angle (in radians) to the direction of movement
+			local angle = math.atan2(dy, dx)
+
+			-- Apply a rotation offset if necessary (for example, rotating by 90 degrees or pi/2 radians)
+			local adjusted_angle = angle - math.pi / 2  -- Adjusting by -pi/2 (90 degrees counterclockwise)
+
+			-- Set the koi's rotation to face the direction of movement (Z-axis rotation)
+			go.set_rotation(vmath.quat_rotation_z(adjusted_angle), koi_instances[id])
+
+			print("Updated position of koi " .. id .. " to " .. tostring(position) .. " with rotation " .. adjusted_angle)
+		end
 	end
 end
+
+
+
+
 
 -- Called every frame
 function update(self, dt)
 	receive_koi_positions()  -- Receive positions from the server
 	update_koi_instances()   -- Update local koi and other koi instances
+
 	if koi_instances[local_koi_id] then
 		-- Send local koi's updated position to the server
 		send_koi_position(local_koi_id, go.get_position(koi_instances[local_koi_id]))

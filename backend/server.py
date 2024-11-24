@@ -2,12 +2,15 @@ import socket
 import threading
 import random
 import time
+import math
 
 TCP_HOST = '127.0.0.1'
 TCP_PORT = 12345
 
 # Global dictionary to store koi positions by ID
 koi_positions = {}
+# Global dictionary to store koi current targets
+koi_targets = {}
 lock = threading.Lock()
 
 # Global list to track active client sockets
@@ -16,8 +19,40 @@ active_clients = []
 # Fixed tick rate (e.g., 60 ticks per second)
 TICK_RATE = 1 / 60.0  # 60 Hz (game tick every 1/60th of a second)
 
+# Fish movement settings
+MOVE_SPEED = 1  # How fast the fish moves towards the target
+
+def get_random_target():
+    """Return a random position within the screen boundaries"""
+    return random.randint(0, 360), random.randint(0, 640)
+
+def move_towards_target(current_x, current_y, target_x, target_y):
+    """Move the fish towards the target position."""
+    # Calculate the distance between the current position and the target position
+    dx = target_x - current_x
+    dy = target_y - current_y
+    distance = math.sqrt(dx**2 + dy**2)
+
+    if distance == 0:
+        return current_x, current_y
+
+    # Calculate the movement step
+    move_step_x = (dx / distance) * MOVE_SPEED
+    move_step_y = (dy / distance) * MOVE_SPEED
+
+    # Update the position towards the target
+    new_x = current_x + move_step_x
+    new_y = current_y + move_step_y
+
+    # If we're very close to the target, snap the fish to the target
+    if distance < MOVE_SPEED:
+        new_x, new_y = target_x, target_y
+
+    return new_x, new_y
+
 def handle_client(client_socket, address):
     global koi_positions
+    global koi_targets
     global active_clients
     client_id = None
 
@@ -28,10 +63,13 @@ def handle_client(client_socket, address):
         client_id = str(address)  # Assign a unique client_id, can be address or custom ID
         
         # Randomize koi position for the client
-        x = random.randint(0, 360)  # Random X position
-        y = random.randint(0, 640)  # Random Y position
+        x, y = get_random_target()
         koi_positions[client_id] = (x, y)
-        print(f"Assigned koi position to {client_id}: {koi_positions[client_id]}")
+        # Assign a random target as well
+        target_x, target_y = get_random_target()
+        koi_targets[client_id] = (target_x, target_y)
+
+        print(f"Assigned koi position to {client_id}: {koi_positions[client_id]} with target {koi_targets[client_id]}")
         
         # Send the updated koi positions list to the client (excluding its own position)
         with lock:
@@ -91,7 +129,8 @@ def handle_client(client_socket, address):
         with lock:
             if client_id in koi_positions:
                 del koi_positions[client_id]
-                print(f"Removed {client_id} from koi_positions")
+                del koi_targets[client_id]
+                print(f"Removed {client_id} from koi_positions and koi_targets")
         
         print(f"Client {address} disconnected")
         client_socket.close()
@@ -103,11 +142,17 @@ def game_tick():
         time.sleep(TICK_RATE)
         
         with lock:
-            # Example: Update each koi's position (you can adjust this logic as needed)
+            # Example: Update each koi's position (move towards random targets)
             for client_id, (x, y) in koi_positions.items():
-                x += random.randint(-1, 1)  # Random horizontal movement
-                y += random.randint(-1, 1)  # Random vertical movement
-                koi_positions[client_id] = (x, y)
+                target_x, target_y = koi_targets[client_id]
+                
+                # Move the fish towards its target
+                new_x, new_y = move_towards_target(x, y, target_x, target_y)
+                koi_positions[client_id] = (new_x, new_y)
+
+                # If fish is near the target, pick a new random target
+                if math.sqrt((new_x - target_x) ** 2 + (new_y - target_y) ** 2) < MOVE_SPEED:
+                    koi_targets[client_id] = get_random_target()
         
         with lock:
             all_positions = "\n".join(
@@ -123,7 +168,6 @@ def game_tick():
                 except Exception as e:
                     print(f"Error sending to client: {e}")
                     active_clients.remove(client_socket)
-
 
 def start_server():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
