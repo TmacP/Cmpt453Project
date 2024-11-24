@@ -11,7 +11,7 @@ koi_positions = {}
 lock = threading.Lock()
 
 # Fixed tick rate (e.g., 60 ticks per second)
-TICK_RATE = 60.0 / 60.0  # 60 Hz (game tick every 1/60th of a second)
+TICK_RATE = 1 / 60.0  # 60 Hz (game tick every 1/60th of a second)
 
 def handle_client(client_socket, address):
     global koi_positions

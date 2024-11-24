@@ -2,31 +2,32 @@ local socket = require("socket")
 
 local host, port = "127.0.0.1", 12345
 local tcp = nil
-local koi_positions = {} -- To store all koi positions
-local koi_instances = {} -- To store spawned koi game objects
-local local_koi_id = nil -- To store the local koi's ID
+local koi_positions = {}  -- To store all koi positions
+local koi_instances = {}  -- To store spawned koi game objects
+local local_koi_id = nil  -- To store the local koi's ID
 
--- Fixed tick rate (e.g., 60 ticks per second)
-local TICK_RATE = 60.0 / 60.0  -- 60 Hz (game tick every 1/60th of a second)
+local TICK_RATE = 1 / 60  -- 60 Hz (game tick every 1/60th of a second)
+local factory_url = "#koi_factory"  -- Factory URL for spawning koi
 
--- Function to connect to the server
-function connect_to_server()
+-- Called once when the script is initialized
+function init(self)
 	tcp = assert(socket.tcp())
 	tcp:connect(host, port)
 	tcp:settimeout(0)
 	print("Connected to server")
 
-	-- Assign a unique ID for the local koi when connected
-	local_koi_id = "local_koi_" .. tostring(os.time()) -- Example unique ID for local koi
+	-- Assign a unique ID for the local koi
+	local_koi_id = "local_koi_" .. tostring(os.time())
 	print("Local Koi ID: " .. local_koi_id)
 
-	-- Optionally spawn the local koi at a random starting position within screen bounds
-	local x = math.random(0, 360)  -- Random X position within screen width
-	local y = math.random(0, 640)  -- Random Y position within screen height
+	-- Spawn the local koi at a random starting position
+	local x = math.random(0, 360)
+	local y = math.random(0, 640)
+	spawn_koi(local_koi_id, vmath.vector3(x, y, 0))  -- Spawn the local koi
 	send_koi_position(local_koi_id, vmath.vector3(x, y, 0))
 end
 
--- Function to send local koi position to the server
+-- Send the local koi's position to the server
 function send_koi_position(koi_id, position)
 	if tcp then
 		local data = string.format("%s:%f,%f\n", koi_id, position.x, position.y)
@@ -34,7 +35,7 @@ function send_koi_position(koi_id, position)
 	end
 end
 
--- Function to receive koi positions from the server
+-- Receive koi positions from the server
 function receive_koi_positions()
 	if tcp then
 		local data, status, partial = tcp:receive()
@@ -44,7 +45,6 @@ function receive_koi_positions()
 			local new_positions = {}
 
 			if response ~= "" then
-				-- Parse koi positions
 				for line in response:gmatch("[^\n]+") do
 					local id, pos = line:match("([^:]+):([^:]+)")
 					if id and pos then
@@ -55,12 +55,8 @@ function receive_koi_positions()
 					end
 				end
 
-				-- Only update koi positions if they are valid
-				if next(new_positions) ~= nil then
-					koi_positions = new_positions
-				else
-					print("No valid koi positions received.")
-				end
+				-- Update koi positions
+				koi_positions = new_positions
 			else
 				print("Empty data received, ignoring.")
 			end
@@ -68,14 +64,12 @@ function receive_koi_positions()
 	end
 end
 
--- Function to manage koi instances (spawn or update their positions)
+-- Manage koi instances (spawn or update positions)
 function update_koi_instances()
-	-- Ensure that koi positions are updated without redundant spawning
 	for id, position in pairs(koi_positions) do
-		-- Check if koi is not already spawned
 		if not koi_instances[id] then
-			print("Spawning koi: " .. id)
-			koi_instances[id] = spawn_koi(position)
+			-- Spawn koi only if it doesn't already exist
+			spawn_koi(id, position)
 		else
 			-- Update the koi's position
 			update_koi_position(id, position)
@@ -83,39 +77,35 @@ function update_koi_instances()
 	end
 end
 
--- Function to spawn a new koi object
-function spawn_koi(position)
+-- Spawn a koi game object using Defold factory
+function spawn_koi(id, position)
 	print("Spawning koi at " .. tostring(position))
-	return { position = position }
+
+	if factory_url then
+		-- Spawn the koi object using the factory
+		local koi = factory.create(factory_url, position)
+		koi_instances[id] = koi  -- Correctly associate the spawned koi with its unique ID
+		print("Koi " .. id .. " spawned at " .. tostring(position))
+	else
+		print("Factory not found! Ensure the factory URL is correct.")
+	end
 end
 
--- Function to update a koi's position
+-- Update the koi's position in the game world
 function update_koi_position(id, position)
 	if koi_instances[id] then
-		koi_instances[id].position = position
+		-- Update position of the spawned koi
+		go.set_position(position, koi_instances[id])
 		print("Updated position of koi " .. id .. " to " .. tostring(position))
 	end
 end
 
--- Function to run the game loop
-function game_loop()
-	while true do
-		-- Receive koi positions from the server
-		receive_koi_positions()
-
-		-- Update local koi and other koi instances in the game world
-		update_koi_instances()
-
-		-- Send local koi's updated position to the server every tick
-		if koi_instances[local_koi_id] then
-			send_koi_position(local_koi_id, koi_instances[local_koi_id].position)
-		end
-
-		-- Wait for the next game tick
-		socket.sleep(TICK_RATE)
+-- Called every frame
+function update(self, dt)
+	receive_koi_positions()  -- Receive positions from the server
+	update_koi_instances()   -- Update local koi and other koi instances
+	if koi_instances[local_koi_id] then
+		-- Send local koi's updated position to the server
+		send_koi_position(local_koi_id, go.get_position(koi_instances[local_koi_id]))
 	end
 end
-
--- Connect to the server and start the game loop
-connect_to_server()
-game_loop()

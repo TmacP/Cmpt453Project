@@ -1,16 +1,6 @@
 name: "main"
-scale_along_z: 0
-embedded_instances {
+instances {
   id: "factory"
-  data: "components {\n"
-  "  id: \"factory\"\n"
-  "  component: \"/main/factory.script\"\n"
-  "}\n"
-  "embedded_components {\n"
-  "  id: \"koi_factory\"\n"
-  "  type: \"factory\"\n"
-  "  data: \"prototype: \\\"/main/koi.go\\\"\\n"
-  "\"\n"
-  "}\n"
-  ""
+  prototype: "/main/factory.go"
 }
+scale_along_z: 0
