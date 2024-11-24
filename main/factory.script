@@ -20,11 +20,7 @@ function init(self)
 	local_koi_id = "local_koi_" .. tostring(os.time())
 	print("Local Koi ID: " .. local_koi_id)
 
-	-- Spawn the local koi at a random starting position
-	local x = math.random(0, 360)
-	local y = math.random(0, 640)
-	spawn_koi(local_koi_id, vmath.vector3(x, y, 0))  -- Spawn the local koi
-	send_koi_position(local_koi_id, vmath.vector3(x, y, 0))
+
 end
 
 -- Send the local koi's position to the server
