@@ -14,7 +14,7 @@ lock = threading.Lock()
 active_clients = []
 
 # Fixed tick rate (e.g., 60 ticks per second)
-TICK_RATE = 30 / 60.0  # 60 Hz (game tick every 1/60th of a second)
+TICK_RATE = 1 / 60.0  # 60 Hz (game tick every 1/60th of a second)
 
 def handle_client(client_socket, address):
     global koi_positions
@@ -113,7 +113,7 @@ def game_tick():
             all_positions = "\n".join(
                 f"{id}:{x},{y}" for id, (x, y) in koi_positions.items()
             )
-            print(f"Sending updated koi positions: {all_positions}")
+            print(f"Sending updated koi positions: \n{all_positions}")
         
         # Broadcast updated positions to all connected clients
         with lock:
