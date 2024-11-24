@@ -6,7 +6,7 @@ local koi_positions = {}  -- To store all koi positions
 local koi_instances = {}  -- To store spawned koi game objects
 local local_koi_id = nil  -- To store the local koi's ID
 
-local TICK_RATE = 1 / 60  -- 60 Hz (game tick every 1/60th of a second)
+local TICK_RATE = 30 / 60  -- 60 Hz (game tick every 1/60th of a second)
 local factory_url = "#koi_factory"  -- Factory URL for spawning koi
 
 -- Called once when the script is initialized

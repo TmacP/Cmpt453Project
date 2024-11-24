@@ -10,11 +10,15 @@ TCP_PORT = 12345
 koi_positions = {}
 lock = threading.Lock()
 
+# Global list to track active client sockets
+active_clients = []
+
 # Fixed tick rate (e.g., 60 ticks per second)
-TICK_RATE = 1 / 60.0  # 60 Hz (game tick every 1/60th of a second)
+TICK_RATE = 30 / 60.0  # 60 Hz (game tick every 1/60th of a second)
 
 def handle_client(client_socket, address):
     global koi_positions
+    global active_clients
     client_id = None
 
     try:
@@ -37,6 +41,10 @@ def handle_client(client_socket, address):
             print(f"Sending all koi positions to {address}: {all_positions}")
         
         client_socket.sendall(all_positions.encode() + b"\n")
+        
+        # Add client socket to the active clients list
+        with lock:
+            active_clients.append(client_socket)
         
         while True:
             # Receive data from client (updates koi position)
@@ -74,11 +82,17 @@ def handle_client(client_socket, address):
     except Exception as e:
         print(f"Error with client {address}: {e}")
     finally:
-        # Remove koi when client disconnects
+        # Remove client socket from active clients list
+        with lock:
+            if client_socket in active_clients:
+                active_clients.remove(client_socket)
+        
+        # Remove koi position when client disconnects
         with lock:
             if client_id in koi_positions:
                 del koi_positions[client_id]
                 print(f"Removed {client_id} from koi_positions")
+        
         print(f"Client {address} disconnected")
         client_socket.close()
 
@@ -89,22 +103,27 @@ def game_tick():
         time.sleep(TICK_RATE)
         
         with lock:
-            # Example: Move each koi by a fixed amount (you can modify this logic)
+            # Example: Update each koi's position (you can adjust this logic as needed)
             for client_id, (x, y) in koi_positions.items():
-                # Move koi by a small amount on each tick (adjust movement logic as needed)
                 x += random.randint(-1, 1)  # Random horizontal movement
                 y += random.randint(-1, 1)  # Random vertical movement
                 koi_positions[client_id] = (x, y)
         
-        # Broadcast updated positions to all clients
         with lock:
             all_positions = "\n".join(
                 f"{id}:{x},{y}" for id, (x, y) in koi_positions.items()
             )
             print(f"Sending updated koi positions: {all_positions}")
         
-        # In a real implementation, here you would send the updated positions to all connected clients
-        # (assuming you're using a global connection manager)
+        # Broadcast updated positions to all connected clients
+        with lock:
+            for client_socket in active_clients:
+                try:
+                    client_socket.sendall(all_positions.encode() + b"\n")
+                except Exception as e:
+                    print(f"Error sending to client: {e}")
+                    active_clients.remove(client_socket)
+
 
 def start_server():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
