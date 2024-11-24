@@ -3,7 +3,6 @@ local socket = require("socket")
 local host, port = "0.0.0.0", 12345 -- Server address
 local tcp = nil
 local koi_data = {}  -- Single table to store koi instances and positions
-local local_koi_id = nil  -- Unique ID for the local koi
 local factory_url = "#koi_factory"  -- Factory URL for spawning koi
 
 -- Called once when the script is initialized
@@ -11,40 +10,22 @@ function init(self)
 	tcp = assert(socket.tcp())
 	tcp:connect(host, port)
 	tcp:settimeout(0)
-
-	-- Generate a unique ID for the local koi
-	local_koi_id = "local_koi_" .. tostring(os.time())
-	print("Initialized with Local Koi ID:", local_koi_id)
-end
-
--- Send the local koi's position to the server
-local function send_koi_position(koi_id, position)
-	if tcp then
-		local data = string.format("%s:%f,%f\n", koi_id, position.x, position.y)
-		tcp:send(data)
-	end
 end
 
 -- Receive and parse koi positions from the server
 local function receive_koi_positions()
-	if tcp then
-		local data = tcp:receive()
-		if data then
-			for line in data:gmatch("[^\n]+") do
-				local id, pos = line:match("([^:]+):([^:]+)")
-				if id and pos then
-					local x, y = pos:match("([^,]+),([^,]+)")
-					if x and y then
-						local position = vmath.vector3(tonumber(x), tonumber(y), 0)
-
-						-- Update position in koi_data
-						if not koi_data[id] then
-							koi_data[id] = { instance = nil, position = position }
-						else
-							koi_data[id].position = position
-						end
-					end
-				end
+--print("receive_koi_positions()")
+local data = tcp:receive()
+	for line in data:gmatch("[^\n]+") do
+		local id, pos = line:match("([^:]+):([^:]+)")
+		if id and pos then
+			local x, y = pos:match("([^,]+),([^,]+)")
+			local position = vmath.vector3(tonumber(x), tonumber(y), 0)
+			-- Update position in koi_data
+			if not koi_data[id] then
+				koi_data[id] = { instance = nil, position = position }
+			else
+				koi_data[id].position = position
 			end
 		end
 	end
@@ -86,14 +67,18 @@ local function update_koi_instances()
 	end
 end
 
+-- this is the timestamp we send to check a round trip
+function send_test()
+	local data = os.time()
+	print(data)
+	tcp:send(data)
+end
+
 -- Called every frame
 function update(self, dt)
 	-- Receive server updates and sync koi positions
 	receive_koi_positions()
 	update_koi_instances()
-
-	-- Send local koi's position to the server
-	if koi_data[local_koi_id] and koi_data[local_koi_id].instance then
-		send_koi_position(local_koi_id, go.get_position(koi_data[local_koi_id].instance))
-	end
+	-- send a test to get rtt
+	--send_test()
 end
