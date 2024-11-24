@@ -1,0 +1,90 @@
+local socket = require("socket")
+
+local host, port = "127.0.0.1", 12345
+local tcp = nil
+local koi_positions = {} -- To store all koi positions
+local koi_instances = {} -- To store spawned koi game objects
+
+function connect_to_server()
+	tcp = assert(socket.tcp())
+	tcp:connect(host, port)
+	tcp:settimeout(0)
+	print("Connected to server")
+end
+
+function send_koi_position(koi_id, position)
+	if tcp then
+		local data = string.format("%s:%f,%f\n", koi_id, position.x, position.y)
+		tcp:send(data)
+	end
+end
+
+function receive_koi_positions()
+	if tcp then
+		local data, status, partial = tcp:receive()
+		if data or partial then
+			local response = data or partial
+			print("Received koi positions:", response)  -- Debugging line
+			local new_positions = {}
+
+			-- Ensure the response is not empty
+			if response ~= "" then
+				-- Parse koi positions
+				for line in response:gmatch("[^\n]+") do
+					local id, pos = line:match("([^:]+):([^:]+)")
+					if id and pos then
+						local x, y = pos:match("([^,]+),([^,]+)")
+						if x and y then
+							new_positions[id] = vmath.vector3(tonumber(x), tonumber(y), 0)
+						end
+					end
+				end
+
+				-- Only update koi positions if they are valid
+				if next(new_positions) ~= nil then
+					koi_positions = new_positions
+				else
+					print("No valid koi positions received.")
+				end
+			else
+				print("Empty data received, ignoring.")
+			end
+		end
+	end
+end
+
+
+function update_koi_instances()
+	-- Update or create koi game objects
+	for id, position in pairs(koi_positions) do
+		if not koi_instances[id] then
+			-- Spawn a new koi if it doesn't exist
+			local koi_instance = factory.create("#koi_factory", position)
+			print("Spawning koi at:", position)  -- Debugging line
+
+			koi_instances[id] = koi_instance
+		else
+			-- Update position of existing koi
+			go.set_position(position, koi_instances[id])
+		end
+	end
+
+	-- Remove koi game objects for IDs no longer in koi_positions
+	for id, instance in pairs(koi_instances) do
+		if not koi_positions[id] then
+			go.delete(instance)
+			koi_instances[id] = nil
+		end
+	end
+end
+
+function init(self)
+	connect_to_server()
+	-- Spawn a koi at a default starting position, for example (100, 200)
+end
+
+function update(self, dt)
+	-- Receive positions of all koi from server
+	receive_koi_positions()
+	update_koi_instances()
+end
