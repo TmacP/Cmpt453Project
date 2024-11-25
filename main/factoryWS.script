@@ -1,39 +1,25 @@
--- Define the update_gui function (this is just an example)
-local function update_gui(self)
-	if self.connection then
-		-- Update GUI to show connection status
-		print("WebSocket connection is active.")
-	else
-		-- Update GUI to show disconnected status
-		print("WebSocket connection is disconnected.")
-	end
-end
+local waiting_for_response = false -- Flag to track if a response is pending
+local last_sent_timestamp = nil -- Store the last sent timestamp
+
 
 -- WebSocket callback function
 local function websocket_callback(self, conn, data)
 	if data.event == websocket.EVENT_DISCONNECTED then
 		print("Disconnected: " .. tostring(conn))
 		self.connection = nil
-		update_gui(self)  -- Now the function is defined
 	elseif data.event == websocket.EVENT_CONNECTED then
-		-- Send a timestamp message when connected
-		local timestamp = os.time()  -- Get the current Unix timestamp
-		local timestamp_message = "Timestamp: " .. tostring(timestamp)
-		websocket.send(conn, timestamp_message)  -- Send timestamp to the server
-		update_gui(self)  -- Now the function is defined
-		print("Connected: " .. tostring(conn))
-		print("Sent timestamp: " .. timestamp_message)  -- Log the sent timestamp
+		send_timestamp(conn)  -- Pass the connection object to send_timestamp
 	elseif data.event == websocket.EVENT_ERROR then
 		print("Error: '" .. tostring(data.message) .. "'")
 		if data.handshake_response then
 			print("Handshake response status: '" .. tostring(data.handshake_response.status) .. "'")
 			for key, value in pairs(data.handshake_response.headers) do
-				log("Handshake response header: '" .. key .. ": " .. value .. "'")
+				print("Handshake response header: '" .. key .. ": " .. value .. "'")
 			end
 			print("Handshake response body: '" .. tostring(data.handshake_response.response) .. "'")
 		end
 	elseif data.event == websocket.EVENT_MESSAGE then
-		print("Receiving: '" .. tostring(data.message) .. "'")
+		receive_timestamp(data)  -- Pass data to receive_timestamp
 	end
 end
 
@@ -43,8 +29,52 @@ function init(self)
 	self.connection = websocket.connect(self.url, params, websocket_callback)
 end
 
+function send_timestamp(conn)
+	-- Send a timestamp message when connected
+	local timestamp = os.time()  -- Get the current Unix timestamp
+	local timestamp_message = "Timestamp: " .. tostring(timestamp)
+
+	if conn then  -- Check if the connection is valid before sending
+		websocket.send(conn, timestamp_message)  -- Send timestamp to the server
+		print("Connected: " .. tostring(conn))
+		print("Sent timestamp: " .. timestamp_message)  -- Log the sent timestamp
+	else
+		print("Error: Connection is not valid.")
+	end
+end
+
+function receive_timestamp(data)
+	-- When the message is received (echoed timestamp), calculate the round trip time
+	local received_time = os.time()  -- Get the current time when the response is received
+	local sent_time = tonumber(data.message:match("Timestamp: (%d+)"))  -- Extract the sent timestamp from the message
+
+	if sent_time then
+		-- Calculate the round-trip time (difference between sent and received times)
+		local round_trip_time = received_time - sent_time
+		print("Received echo: " .. data.message)  -- Log the received message
+		print("Round-trip time: " .. round_trip_time .. " seconds")  -- Log the round-trip time
+
+		-- After receiving the response, set waiting_for_response to false
+		waiting_for_response = false
+	end
+end
+
 function finalize(self)
 	if self.connection ~= nil then
 		websocket.disconnect(self.connection)
 	end
+end
+
+-- Send a timestamp if a response is not pending
+local function send_test(self)
+	if not waiting_for_response then
+		last_sent_timestamp = os.time()  -- Record the current timestamp
+		send_timestamp(self.connection)  -- Send the timestamp to the server
+		waiting_for_response = true  -- Set flag to wait for the response
+	end
+end
+
+-- Update function to repeatedly call send_test
+function update(self, dt)
+	send_test(self)  -- Pass 'self' explicitly to send_test
 end
