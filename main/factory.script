@@ -12,31 +12,64 @@ function init(self)
 	tcp:settimeout(0)
 end
 
--- Receive and parse koi positions from the server
+-- Receives and processes RTT responses
+local function receive_rtt(t)
+	local current_time = tostring(socket.gettime())
+	local rtt = (current_time - t)  -- Convert to milliseconds
+	--print(string.format("RTT: %.2f ms", rtt))
+end
+
+
 local function receive_koi_positions()
---print("receive_koi_positions()")
-local data = tcp:receive()
+	--print("receive_koi_positions()")
+	local data = tcp:receive()
+	if not data then
+		print("No data received")
+		return
+	end
+	--print("data: " .. data)
+
 	for line in data:gmatch("[^\n]+") do
-		local id, pos = line:match("([^:]+):([^:]+)")
-		if id and pos then
-			local x, y = pos:match("([^,]+),([^,]+)")
-			local position = vmath.vector3(tonumber(x), tonumber(y), 0)
-			-- Update position in koi_data
-			if not koi_data[id] then
-				koi_data[id] = { instance = nil, position = position }
+		-- Check if the line is a timestamp
+		if line:match("^Received your timestamp:") then
+			local timestamp = line:match("^Received your timestamp: (.+)")
+			if timestamp then
+				receive_rtt(timestamp)
+				print("Received timestamp: " .. timestamp)
+				-- Handle the timestamp as needed (e.g., store, log, etc.)
+			end
+
+			-- Otherwise, assume it's a position
+		else
+			local id, pos = line:match("([^:]+):([^:]+)")
+			if id and pos then
+				local x, y = pos:match("([^,]+),([^,]+)")
+				if x and y then
+					local position = vmath.vector3(tonumber(x), tonumber(y), 0)
+					-- Update position in koi_data
+					if not koi_data[id] then
+						koi_data[id] = { instance = nil, position = position }
+					else
+						koi_data[id].position = position
+					end
+				else
+					print("Error parsing position: " .. pos)
+				end
 			else
-				koi_data[id].position = position
+				print("Unknown data format: " .. line)
 			end
 		end
 	end
 end
+
+
 
 -- Spawn a koi game object if it doesn't exist
 local function spawn_koi(id, position)
 	if not koi_data[id].instance then
 		local koi = factory.create(factory_url, position)
 		koi_data[id].instance = koi
-		print("Spawned koi:", id, "at", position)
+		--print("Spawned koi:", id, "at", position)
 	end
 end
 
@@ -67,12 +100,14 @@ local function update_koi_instances()
 	end
 end
 
--- this is the timestamp we send to check a round trip
-function send_test()
-	local data = os.time()
-	print(data)
-	tcp:send(data)
+-- Sends a timestamp to the server
+local function send_test()
+	local timestamp = tostring(socket.gettime())  -- Use precise time in seconds
+	tcp:send(timestamp .. "\n")  -- Send the timestamp followed by a newline
+	print("Sent timestamp:", timestamp)
 end
+
+
 
 -- Called every frame
 function update(self, dt)
@@ -80,5 +115,5 @@ function update(self, dt)
 	receive_koi_positions()
 	update_koi_instances()
 	-- send a test to get rtt
-	--send_test()
+	send_test()
 end

@@ -57,8 +57,6 @@ def handle_client(client_socket, address):
     client_id = None
 
     try:
-        print(f"New client connected from {address}")
-        
         # Assign a new koi position for the client on connection
         client_id = str(address)  # Assign a unique client_id, can be address or custom ID
         
@@ -69,14 +67,11 @@ def handle_client(client_socket, address):
         target_x, target_y = get_random_target()
         koi_targets[client_id] = (target_x, target_y)
 
-        print(f"Assigned koi position to {client_id}: {koi_positions[client_id]} with target {koi_targets[client_id]}")
-        
         # Send the updated koi positions list to the client (excluding its own position)
         with lock:
             all_positions = "\n".join(
                 f"{id}:{x},{y}" for id, (x, y) in koi_positions.items() if id != client_id
             )
-            print(f"Sending all koi positions to {address}: {all_positions}")
         
         client_socket.sendall(all_positions.encode() + b"\n")
         
@@ -87,35 +82,27 @@ def handle_client(client_socket, address):
         while True:
             # Receive data from client (updates koi position)
             data = client_socket.recv(1024).decode()
-            if not data:
-                print(f"Client {address} disconnected (no data received).")
-                break
 
-            print(f"Received data from {address}: {data.strip()}")
+            print(f"Received data from {address}: {data}")
             
             try:
-                # Parse client ID and position from the received data
-                client_id, pos = data.strip().split(":")
-                x, y = map(float, pos.split(","))
-                print(f"Client {client_id} sent position: ({x}, {y})")
+                # Check if the data has both a client_id and timestamp (split by ":")
+                print(data)
+
+                timestamp = data.strip()
+                print(f"Client {client_id} sent timestamp: ({timestamp})")  
                 
-                # Update koi position for the client
-                with lock:
-                    koi_positions[client_id] = (x, y)
-                    print(f"Updated koi_positions with {client_id}: ({x}, {y})")
-            
+
+                # Send the timestamp back to the client
+                client_socket.sendall(f"Received your timestamp: {timestamp}\n".encode())
+                
+
+                # Broadcast all koi positions to all clients
+                client_socket.sendall(all_positions.encode() + b"\n")
+     
             except ValueError as e:
                 print(f"Error parsing data from {address}: {e}")
-                continue
-
-            # Broadcast all koi positions to all clients except the sender
-            with lock:
-                all_positions = "\n".join(
-                    f"{id}:{x},{y}" for id, (x, y) in koi_positions.items() if id != client_id
-                )
-                print(f"Sending all koi positions to {address}: {all_positions}")
-            
-            client_socket.sendall(all_positions.encode() + b"\n")
+                continue  # Skip to the next iteration if data format is incorrect
 
     except Exception as e:
         print(f"Error with client {address}: {e}")
@@ -130,10 +117,10 @@ def handle_client(client_socket, address):
             if client_id in koi_positions:
                 del koi_positions[client_id]
                 del koi_targets[client_id]
-                print(f"Removed {client_id} from koi_positions and koi_targets")
         
         print(f"Client {address} disconnected")
         client_socket.close()
+
 
 
 def game_tick():
@@ -158,7 +145,6 @@ def game_tick():
             all_positions = "\n".join(
                 f"{id}:{x},{y}" for id, (x, y) in koi_positions.items()
             )
-            print(f"Sending updated koi positions: \n{all_positions}")
         
         # Broadcast updated positions to all connected clients
         with lock:
@@ -166,7 +152,6 @@ def game_tick():
                 try:
                     client_socket.sendall(all_positions.encode() + b"\n")
                 except Exception as e:
-                    print(f"Error sending to client: {e}")
                     active_clients.remove(client_socket)
 
 def start_server():
@@ -183,7 +168,6 @@ def start_server():
     try:
         while True:
             client_socket, address = server_socket.accept()
-            print(f"Connection established with {address}")
             threading.Thread(target=handle_client, args=(client_socket, address)).start()
     except KeyboardInterrupt:
         print("Server shutting down...")
