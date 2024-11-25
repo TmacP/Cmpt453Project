@@ -18,7 +18,7 @@ end
 local function receive_rtt(received_timestamp)
 	if last_sent_timestamp and tostring(last_sent_timestamp) == received_timestamp then
 		--print("received_timestamp " .. received_timestamp)
-		local current_time = socket.gettime()
+		local current_time = socket.gettime() -- this is bug should be os.time right?
 		local rtt = (current_time - tonumber(received_timestamp)) * 1000 -- Convert to milliseconds
 		print(string.format("RTT: %.2f ms", rtt))
 		waiting_for_response = false -- Mark response as received
