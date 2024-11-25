@@ -27,8 +27,9 @@ async def echo(websocket):
             
             # The response includes the original message and the client positions
             response = {
-                "message": message,
-                "clients": client_positions
+                "message": message, # the echoed timestamp to calculate rtt
+                "your_id": id(websocket),  # Include the client's ID
+                "clients": client_positions # the list of the clients, and their positions
             }
             
             # Send the response back to the client
