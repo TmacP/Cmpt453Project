@@ -4,6 +4,7 @@ local last_sent_timestamp = nil -- Store the last sent timestamp
 local koi_data = {}  -- Table to store koi instances and their positions
 local client_id = nil
 
+
 -- WebSocket callback function
 local function websocket_callback(self, conn, data)
 	if data.event == websocket.EVENT_DISCONNECTED then
@@ -69,39 +70,64 @@ end
 
 
 function koi(id, x, y, client_id)
-	-- Check if the koi already exists
+	-- Check if the koi is the client's
 	local is_client_koi = (id == client_id)
-	local new_x, new_y = x, y  -- Start with the current coordinates
+
+	-- Ensure koi_data for the client has a target
+	if not koi_data[id] then
+		-- Create new koi data for the client with an initial random target
+		koi_data[id] = {
+			instance = nil, -- This will be set later when creating the koi
+			x = x,
+			y = y,
+			target = { x = math.random(0, 360), y = math.random(0, 640) }
+		}
+		print(string.format("Initialized new target for Koi ID %s: (%s, %s)", id, koi_data[id].target.x, koi_data[id].target.y))
+	end
 
 	if is_client_koi then
-		-- Generate small deltas for movement within a random range
-		local delta_x = (math.random() - 0.5) * 1  -- Random value between -0.01 and 0.01
-		local delta_y = (math.random() - 0.5) * 1  -- Random value between -0.01 and 0.01
+		-- Get the target for the current koi
+		local target_x, target_y = koi_data[id].target.x, koi_data[id].target.y
+		local direction_x = target_x - x
+		local direction_y = target_y - y
+		local distance = math.sqrt(direction_x^2 + direction_y^2)
 
-		-- Adjust coordinates with deltas
-		new_x = math.max(0, math.min(360, x + delta_x))
-		new_y = math.max(0, math.min(640, y + delta_y))
+		if distance < 1 then
+			-- If the koi is close enough to the target, set a new random target
+			koi_data[id].target.x = math.random(0, 360)
+			koi_data[id].target.y = math.random(0, 640)
+			print(string.format("Reached target. New target set for Koi ID %s: (%s, %s)", id, koi_data[id].target.x, koi_data[id].target.y))
+			label.set_text("#target", "Target set to: " .. koi_data[id].target.x .. " " .. koi_data[id].target.y)
+		else
+			-- Move 1 unit closer to the target
+			local step = 1
+			local step_x = (direction_x / distance) * step
+			local step_y = (direction_y / distance) * step
 
-		print(string.format("Adjusted Client Koi ID %s to new position: (%s, %s)", id, new_x, new_y))
+			-- Update the koi's position
+			x = x + step_x
+			y = y + step_y
+		end
 	end
 
-	if koi_data[id] then
+	if koi_data[id].instance then
 		-- Update existing koi position
-		koi_data[id].x = new_x
-		koi_data[id].y = new_y
-		go.set_position(vmath.vector3(new_x, new_y, 0), koi_data[id].instance)
+		koi_data[id].x = x
+		koi_data[id].y = y
+		go.set_position(vmath.vector3(x, y, 0), koi_data[id].instance)
 
-		print(string.format("Updated Koi ID %s to position: (%s, %s)", id, new_x, new_y))
+		print(string.format("Updated Koi ID %s to position: (%s, %s)", id, x, y))
 	else
 		-- Create new koi
-		local position = vmath.vector3(new_x, new_y, 0)  -- Assuming z = 0 for 2D position
-		local new_koi = factory.create("#koi_factory", position)  -- Create new koi using factory
-		koi_data[id] = { instance = new_koi, x = new_x, y = new_y }
-		pprint(koi_data)
-
-		print(string.format("Created new Koi ID %s at position: (%s, %s)", id, new_x, new_y))
+		local position = vmath.vector3(x, y, 0) -- Assuming z = 0 for 2D position
+		local new_koi = factory.create("#koi_factory", position) -- Create new koi using factory
+		koi_data[id].instance = new_koi
+		koi_data[id].x = x
+		koi_data[id].y = y
+		print(string.format("Created new Koi ID %s at position: (%s, %s)", id, x, y))
 	end
 end
+
 
 function finalize(self)
 	if self.connection ~= nil then
