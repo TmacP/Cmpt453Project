@@ -1,10 +1,17 @@
+# Use the official Python 3 base image
+FROM python:3.10
 
-FROM python:3
-
+# Set the working directory in the container
 WORKDIR /usr/src/app
 
-COPY serverTCP.py .
+# Copy the Python script to the container
+COPY serverWS.py .
 
-EXPOSE 12345/tcp
+# Install the required Python dependencies
+RUN pip install --no-cache-dir websockets
 
-CMD ["python3", "serverTCP.py"]
+# Expose the port your application runs on
+EXPOSE 8765
+
+# Define the default command to run your application
+CMD ["python3", "serverWS.py"]

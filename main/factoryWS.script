@@ -23,7 +23,7 @@ local function websocket_callback(self, conn, data)
 end
 
 function init(self)
-	self.url = "ws://localhost:8765"
+	self.url = "ws://0.0.0.0:12345"--"ws://66.51.126.183:12345"
 	local params = {}
 	self.connection = websocket.connect(self.url, params, websocket_callback)
 end
