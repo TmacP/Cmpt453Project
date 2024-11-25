@@ -7,4 +7,4 @@ COPY server.py .
 
 EXPOSE 12345/tcp
 
-CMD ["python3", "server.py"]
+CMD ["python3", "serverTCP.py"]
