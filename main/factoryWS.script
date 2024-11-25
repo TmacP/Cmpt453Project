@@ -18,6 +18,8 @@ local function websocket_callback(self, conn, data)
 			print("Handshake response body: '" .. tostring(data.handshake_response.response) .. "'")
 		end
 	elseif data.event == websocket.EVENT_MESSAGE then
+		pprint(data)
+		
 		receive_timestamp(data)  -- Process the echoed timestamp
 	end
 end
@@ -28,25 +30,25 @@ function init(self)
 	self.connection = websocket.connect(self.url, params, websocket_callback)
 end
 
-function send_timestamp(conn)
-	-- Send a timestamp message when connected
-	local timestamp = socket.gettime()  -- Get the current Unix timestamp
-	local timestamp_message = "Timestamp: " .. tostring(timestamp)
-
-	if conn then  -- Check if the connection is valid before sending
-		websocket.send(conn, timestamp_message)  -- Send timestamp to the server
-		print("Sent timestamp: " .. timestamp_message)  -- Log the sent timestamp
-	else
-		print("Error: Connection is not valid.")
-	end
-end
 
 function receive_timestamp(data)
+	-- Extract and parse the clients section
+	local clients_section = data.message:match("'clients': %[(.+)%]")
+	if clients_section then
+		for client_entry in clients_section:gmatch("{.-}") do
+			local id = client_entry:match("'id': (%d+)")
+			local x, y = client_entry:match("'coords': %(([%d%.%-]+), ([%d%.%-]+)%)")
+			if id and x and y then
+				print(string.format("Client ID: %s, Position: (%s, %s)", id, x, y))
+			end
+		end
+	end
+	
 	-- When the message is received (echoed timestamp), calculate the round trip time
 	local received_time = socket.gettime()  -- Get the current time when the response is received
-	print(received_time)
+	--print(received_time)
 	local sent_time = tonumber(data.message:match("Timestamp: ([%d%.]+)"))  -- Match the full floating-point number	
-	print(sent_time)
+	--print(sent_time)
 	if sent_time then
 		-- Calculate the round-trip time (difference between sent and received times)
 		local round_trip_time = (received_time - sent_time) * 1000 -- Convert to milliseconds
@@ -62,17 +64,26 @@ function finalize(self)
 	end
 end
 
--- Send a timestamp if a response is not pending
-local function send_test(self)
+
+-- Combined function to send timestamp if no response is pending
+function send_timestamp(self)
 	if not waiting_for_response then
 		-- Only send a timestamp if we're not waiting for a response
-		last_sent_timestamp = socket.gettime()  -- Record the current timestamp
-		send_timestamp(self.connection)  -- Send the timestamp to the server
-		waiting_for_response = true  -- Set flag to wait for the response
+		if self.connection then  -- Ensure the connection is valid
+			local timestamp = socket.gettime()  -- Get the current Unix timestamp
+			local timestamp_message = "Timestamp: " .. tostring(timestamp)
+			websocket.send(self.connection, timestamp_message)  -- Send timestamp to the server
+			--print("Sent timestamp: " .. timestamp_message)  -- Log the sent timestamp
+
+			last_sent_timestamp = timestamp  -- Record the sent timestamp
+			waiting_for_response = true  -- Set flag to wait for the response
+		else
+			print("Error: Connection is not valid.")
+		end
 	end
 end
 
--- Update function to repeatedly call send_test
+-- Update function to repeatedly call send_timestamp
 function update(self, dt)
-	send_test(self)  -- Call send_test in the update loop
+	send_timestamp(self)  -- Call the consolidated function in the update loop
 end
