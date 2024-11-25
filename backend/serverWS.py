@@ -39,7 +39,17 @@ async def echo(websocket):
             print(f"time_match: {time_match}")
             print(f"id_match: {id_match}")
             print(f"pos_match: {pos_match}")
-            
+
+            # Update position if both ID and Position are found in the message
+            if id_match and pos_match:
+                client_id = id_match.group(1)  # Extract Client ID
+                koi_pos_x = float(pos_match.group(1))  # Extract Koi Position X
+                koi_pos_y = float(pos_match.group(2))  # Extract Koi Position Y
+                print(f"Updating Client ID: {client_id}, Koi Position: ({koi_pos_x}, {koi_pos_y})")
+                
+                # Update the connected client's position
+                connected_clients[websocket] = (koi_pos_x, koi_pos_y)
+
             # Prepare the response: append all client coordinates to the echoed message
             client_positions = [
                 {"id": id(client), "coords": coords}
