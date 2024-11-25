@@ -1,6 +1,6 @@
 components {
   id: "factory"
-  component: "/main/factoryUDP.script"
+  component: "/main/factoryTCP.script"
 }
 embedded_components {
   id: "koi_factory"

@@ -1,6 +1,6 @@
 local socket = require("socket")
 
-local host, port = "0.0.0.0", 12345 -- Server address
+local host, port = "66.51.126.183", 12345 -- Server address
 local tcp = nil
 local koi_data = {}  -- Single table to store koi instances and positions
 local factory_url = "#koi_factory"  -- Factory URL for spawning koi

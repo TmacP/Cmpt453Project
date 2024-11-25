@@ -3,7 +3,7 @@ FROM python:3
 
 WORKDIR /usr/src/app
 
-COPY server.py .
+COPY serverTCP.py .
 
 EXPOSE 12345/tcp
 
