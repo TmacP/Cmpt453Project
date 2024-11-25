@@ -37,35 +37,45 @@ end
 function receive_timestamp(data)
 	-- Extract and parse the clients section
 	client_id = data.message:match("'your_id': (%d+)")
-	--print(client_id)
 	label.set_text("#id", "Client id: " .. client_id)
-	local clients_section = data.message:match("'clients': %[(.+)%]")
+	local clients_section = data.message:match("'clients': %[(.-)%]")
+
+	local active_clients = {} -- Temporary table to store active client IDs
+
 	if clients_section then
 		for client_entry in clients_section:gmatch("{.-}") do
 			local id = client_entry:match("'id': (%d+)")
 			local x, y = client_entry:match("'coords': %(([%d%.%-]+), ([%d%.%-]+)%)")
 			if id and x and y then
-				--print(string.format("Client ID: %s, Position: (%s, %s)", id, x, y))
-				koi(id, x, y, client_id)
+				active_clients[id] = true -- Mark client as active
+				koi(id, tonumber(x), tonumber(y), client_id)
 			end
 		end
 	end
-	
-	-- When the message is received (echoed timestamp), calculate the round trip time
-	local received_time = socket.gettime()  -- Get the current time when the response is received
-	--print(received_time)
-	local sent_time = tonumber(data.message:match("Timestamp: ([%d%.]+)"))  -- Match the full floating-point number	
-	--print(sent_time)
-	if sent_time then
-		-- Calculate the round-trip time (difference between sent and received times)
-		local round_trip_time = (received_time - sent_time) * 1000 -- Convert to milliseconds
-		print(string.format("RTT: %.2f ms", round_trip_time))  -- Log the round-trip time with milliseconds precision
-		label.set_text("#rtt", "round_trip_time " .. round_trip_time)
-		-- After receiving the response, set waiting_for_response to false
-		waiting_for_response = false  -- Reset flag to allow sending the next timestamp
+
+	-- Find disconnected clients
+	for id in pairs(koi_data) do
+		if not active_clients[id] then
+			-- Remove the koi game object and its data
+			if koi_data[id].instance then
+				go.delete(koi_data[id].instance) -- Delete the game object
+				print(string.format("Removed disconnected Koi ID %s", id))
+			end
+			koi_data[id] = nil -- Remove from koi_data
+		end
 	end
 
+	-- Process RTT (round trip time) as before
+	local received_time = socket.gettime()
+	local sent_time = tonumber(data.message:match("Timestamp: ([%d%.]+)"))
+	if sent_time then
+		local round_trip_time = (received_time - sent_time) * 1000
+		print(string.format("RTT: %.2f ms", round_trip_time))
+		label.set_text("#rtt", "round_trip_time " .. round_trip_time)
+		waiting_for_response = false
+	end
 end
+
 
 
 
@@ -82,7 +92,7 @@ function koi(id, x, y, client_id)
 			y = y,
 			target = { x = math.random(0, 360), y = math.random(0, 640) }
 		}
-		print(string.format("Initialized new target for Koi ID %s: (%s, %s)", id, koi_data[id].target.x, koi_data[id].target.y))
+		--print(string.format("Initialized new target for Koi ID %s: (%s, %s)", id, koi_data[id].target.x, koi_data[id].target.y))
 	end
 
 	if is_client_koi then
@@ -96,7 +106,7 @@ function koi(id, x, y, client_id)
 			-- If the koi is close enough to the target, set a new random target
 			koi_data[id].target.x = math.random(0, 360)
 			koi_data[id].target.y = math.random(0, 640)
-			print(string.format("Reached target. New target set for Koi ID %s: (%s, %s)", id, koi_data[id].target.x, koi_data[id].target.y))
+			--print(string.format("Reached target. New target set for Koi ID %s: (%s, %s)", id, koi_data[id].target.x, koi_data[id].target.y))
 			label.set_text("#target", "Target set to: " .. koi_data[id].target.x .. " " .. koi_data[id].target.y)
 		else
 			-- Move 1 unit closer to the target
@@ -116,7 +126,7 @@ function koi(id, x, y, client_id)
 		koi_data[id].y = y
 		go.set_position(vmath.vector3(x, y, 0), koi_data[id].instance)
 
-		print(string.format("Updated Koi ID %s to position: (%s, %s)", id, x, y))
+		--print(string.format("Updated Koi ID %s to position: (%s, %s)", id, x, y))
 	else
 		-- Create new koi
 		local position = vmath.vector3(x, y, 0) -- Assuming z = 0 for 2D position
@@ -124,7 +134,7 @@ function koi(id, x, y, client_id)
 		koi_data[id].instance = new_koi
 		koi_data[id].x = x
 		koi_data[id].y = y
-		print(string.format("Created new Koi ID %s at position: (%s, %s)", id, x, y))
+		--print(string.format("Created new Koi ID %s at position: (%s, %s)", id, x, y))
 	end
 end
 
