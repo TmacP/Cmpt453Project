@@ -4,6 +4,8 @@ local host, port = "0.0.0.0", 12345 -- Server address
 local tcp = nil
 local koi_data = {}  -- Single table to store koi instances and positions
 local factory_url = "#koi_factory"  -- Factory URL for spawning koi
+local waiting_for_response = false -- Flag to track if a response is pending
+local last_sent_timestamp = nil -- Store the last sent timestamp
 
 -- Called once when the script is initialized
 function init(self)
@@ -13,40 +15,39 @@ function init(self)
 end
 
 -- Receives and processes RTT responses
-local function receive_rtt(t)
-	local current_time = tostring(socket.gettime())
-	local rtt = (current_time - t)  -- Convert to milliseconds
-	--print(string.format("RTT: %.2f ms", rtt))
+local function receive_rtt(received_timestamp)
+	if last_sent_timestamp and tostring(last_sent_timestamp) == received_timestamp then
+		--print("received_timestamp " .. received_timestamp)
+		local current_time = socket.gettime()
+		local rtt = (current_time - tonumber(received_timestamp)) * 1000 -- Convert to milliseconds
+		print(string.format("RTT: %.2f ms", rtt))
+		waiting_for_response = false -- Mark response as received
+		last_sent_timestamp = nil -- Clear the last sent timestamp
+	else
+		print("Mismatch in received timestamp")
+	end
 end
 
-
 local function receive_koi_positions()
-	--print("receive_koi_positions()")
 	local data = tcp:receive()
 	if not data then
-		print("No data received")
 		return
 	end
-	--print("data: " .. data)
 
 	for line in data:gmatch("[^\n]+") do
-		-- Check if the line is a timestamp
+		-- Check if the line is a timestamp response
 		if line:match("^Received your timestamp:") then
-			local timestamp = line:match("^Received your timestamp: (.+)")
-			if timestamp then
-				receive_rtt(timestamp)
-				print("Received timestamp: " .. timestamp)
-				-- Handle the timestamp as needed (e.g., store, log, etc.)
+			local received_timestamp = line:match("^Received your timestamp: (.+)")
+			if received_timestamp then
+				receive_rtt(received_timestamp)
 			end
-
-			-- Otherwise, assume it's a position
 		else
+			-- Otherwise, assume it's a position update
 			local id, pos = line:match("([^:]+):([^:]+)")
 			if id and pos then
 				local x, y = pos:match("([^,]+),([^,]+)")
 				if x and y then
 					local position = vmath.vector3(tonumber(x), tonumber(y), 0)
-					-- Update position in koi_data
 					if not koi_data[id] then
 						koi_data[id] = { instance = nil, position = position }
 					else
@@ -62,34 +63,27 @@ local function receive_koi_positions()
 	end
 end
 
-
-
--- Spawn a koi game object if it doesn't exist
 local function spawn_koi(id, position)
 	if not koi_data[id].instance then
 		local koi = factory.create(factory_url, position)
 		koi_data[id].instance = koi
-		--print("Spawned koi:", id, "at", position)
 	end
 end
 
--- Update an existing koi's position and rotation
 local function update_koi_position(id, position)
 	local koi_entry = koi_data[id]
 	if koi_entry and koi_entry.instance then
 		local current_position = go.get_position(koi_entry.instance)
 		go.set_position(position, koi_entry.instance)
 
-		-- Calculate rotation to face movement direction
 		local dx, dy = position.x - current_position.x, position.y - current_position.y
 		if dx ~= 0 or dy ~= 0 then
-			local angle = math.atan2(dy, dx) - math.pi / 2  -- Adjust rotation
+			local angle = math.atan2(dy, dx) - math.pi / 2
 			go.set_rotation(vmath.quat_rotation_z(angle), koi_entry.instance)
 		end
 	end
 end
 
--- Manage koi instances (spawn or update positions)
 local function update_koi_instances()
 	for id, data in pairs(koi_data) do
 		if not data.instance then
@@ -100,20 +94,17 @@ local function update_koi_instances()
 	end
 end
 
--- Sends a timestamp to the server
 local function send_test()
-	local timestamp = tostring(socket.gettime())  -- Use precise time in seconds
-	tcp:send(timestamp .. "\n")  -- Send the timestamp followed by a newline
-	print("Sent timestamp:", timestamp)
+	if not waiting_for_response then
+		last_sent_timestamp = socket.gettime() -- Record the timestamp
+		tcp:send(tostring(last_sent_timestamp) .. "\n") -- Send the timestamp
+		--print("Sent timestamp:", last_sent_timestamp)
+		waiting_for_response = true -- Set flag to wait for response
+	end
 end
 
-
-
--- Called every frame
 function update(self, dt)
-	-- Receive server updates and sync koi positions
 	receive_koi_positions()
 	update_koi_instances()
-	-- send a test to get rtt
 	send_test()
 end
