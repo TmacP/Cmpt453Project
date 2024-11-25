@@ -4,9 +4,15 @@
 
 import asyncio
 from websockets.asyncio.server import serve
-
+import re
 # A set to keep track of connected clients
 connected_clients = {}
+
+
+# Regular expressions for matching different message formats
+TIME_PATTERN = r"Timestamp: ([\d.]+)"
+ID_PATTERN = r"Client ID: (\d+)"
+POS_PATTERN = r"Koi Position: \(([\d.]+), ([\d.]+)\)"
 
 async def echo(websocket):
     # Register the new client
@@ -17,7 +23,22 @@ async def echo(websocket):
     try:
         async for message in websocket:
             # Log the received message
+            message = message.decode("utf-8")
             #print(f"Received from client: {message}")
+            
+            # Initialize matches as None
+            time_match = None
+            id_match = None
+            pos_match = None
+
+            # Check for the different message patterns
+            time_match = re.search(TIME_PATTERN, message)
+            id_match = re.search(ID_PATTERN, message)
+            pos_match = re.search(POS_PATTERN, message)
+            
+            print(f"time_match: {time_match}")
+            print(f"id_match: {id_match}")
+            print(f"pos_match: {pos_match}")
             
             # Prepare the response: append all client coordinates to the echoed message
             client_positions = [
