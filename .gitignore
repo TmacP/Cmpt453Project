@@ -3,3 +3,13 @@
 /build
 .DS_Store
 Thumbs.db
+.DS_Store
+arm64-macos/Koi Keep.app/Contents/Resources/PrivacyInfo.xcprivacy
+arm64-macos/Koi Keep.app/Contents/Resources/game.public.der
+arm64-macos/Koi Keep.app/Contents/Resources/game.projectc
+arm64-macos/Koi Keep.app/Contents/Resources/game.dmanifest
+arm64-macos/Koi Keep.app/Contents/Resources/game.arci
+arm64-macos/Koi Keep.app/Contents/Resources/game.arcd
+arm64-macos/Koi Keep.app/Contents/MacOS/KoiKeep
+arm64-macos/Koi Keep.app/Contents/Info.plist
+.DS_Store
