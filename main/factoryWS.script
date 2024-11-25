@@ -37,7 +37,7 @@ function receive_timestamp(data)
 	-- Extract and parse the clients section
 	client_id = data.message:match("'your_id': (%d+)")
 	--print(client_id)
-	
+	label.set_text("#id", "Client id: " .. client_id)
 	local clients_section = data.message:match("'clients': %[(.+)%]")
 	if clients_section then
 		for client_entry in clients_section:gmatch("{.-}") do
@@ -59,6 +59,7 @@ function receive_timestamp(data)
 		-- Calculate the round-trip time (difference between sent and received times)
 		local round_trip_time = (received_time - sent_time) * 1000 -- Convert to milliseconds
 		print(string.format("RTT: %.2f ms", round_trip_time))  -- Log the round-trip time with milliseconds precision
+		label.set_text("#rtt", "round_trip_time " .. round_trip_time)
 		-- After receiving the response, set waiting_for_response to false
 		waiting_for_response = false  -- Reset flag to allow sending the next timestamp
 	end
@@ -74,8 +75,8 @@ function koi(id, x, y, client_id)
 
 	if is_client_koi then
 		-- Generate small deltas for movement within a random range
-		local delta_x = (math.random() - 0.5) * 0.02  -- Random value between -0.01 and 0.01
-		local delta_y = (math.random() - 0.5) * 0.02  -- Random value between -0.01 and 0.01
+		local delta_x = (math.random() - 0.5) * 1  -- Random value between -0.01 and 0.01
+		local delta_y = (math.random() - 0.5) * 1  -- Random value between -0.01 and 0.01
 
 		-- Adjust coordinates with deltas
 		new_x = math.max(0, math.min(360, x + delta_x))
