@@ -1,6 +1,6 @@
 components {
   id: "factory"
-  component: "/main/factoryTCP.script"
+  component: "/main/factoryWS.script"
 }
 embedded_components {
   id: "koi_factory"

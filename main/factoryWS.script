@@ -1,0 +1,50 @@
+-- Define the update_gui function (this is just an example)
+local function update_gui(self)
+	if self.connection then
+		-- Update GUI to show connection status
+		print("WebSocket connection is active.")
+	else
+		-- Update GUI to show disconnected status
+		print("WebSocket connection is disconnected.")
+	end
+end
+
+-- WebSocket callback function
+local function websocket_callback(self, conn, data)
+	if data.event == websocket.EVENT_DISCONNECTED then
+		print("Disconnected: " .. tostring(conn))
+		self.connection = nil
+		update_gui(self)  -- Now the function is defined
+	elseif data.event == websocket.EVENT_CONNECTED then
+		-- Send a timestamp message when connected
+		local timestamp = os.time()  -- Get the current Unix timestamp
+		local timestamp_message = "Timestamp: " .. tostring(timestamp)
+		websocket.send(conn, timestamp_message)  -- Send timestamp to the server
+		update_gui(self)  -- Now the function is defined
+		print("Connected: " .. tostring(conn))
+		print("Sent timestamp: " .. timestamp_message)  -- Log the sent timestamp
+	elseif data.event == websocket.EVENT_ERROR then
+		print("Error: '" .. tostring(data.message) .. "'")
+		if data.handshake_response then
+			print("Handshake response status: '" .. tostring(data.handshake_response.status) .. "'")
+			for key, value in pairs(data.handshake_response.headers) do
+				log("Handshake response header: '" .. key .. ": " .. value .. "'")
+			end
+			print("Handshake response body: '" .. tostring(data.handshake_response.response) .. "'")
+		end
+	elseif data.event == websocket.EVENT_MESSAGE then
+		print("Receiving: '" .. tostring(data.message) .. "'")
+	end
+end
+
+function init(self)
+	self.url = "ws://localhost:8765"
+	local params = {}
+	self.connection = websocket.connect(self.url, params, websocket_callback)
+end
+
+function finalize(self)
+	if self.connection ~= nil then
+		websocket.disconnect(self.connection)
+	end
+end

@@ -16,7 +16,10 @@ input_method = HiddenInputField
 scale_mode = stretch
 
 [project]
-title = Snake
+title = Koi Keep
+publisher = Cozy Cachet
+developer = Tristen MacPherson
+dependencies#0 = https://github.com/defold/extension-websocket/archive/master.zip
 
 [tilemap]
 max_tile_count = 5000
