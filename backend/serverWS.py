@@ -13,11 +13,12 @@ connected_clients = {}
 TIME_PATTERN = r"Timestamp: ([\d.]+)"
 ID_PATTERN = r"Client ID: (\d+)"
 POS_PATTERN = r"Koi Position: \(([\d.]+), ([\d.]+)\)"
+ANGLE_PATTERN = r"Koi Angle: (\d+)"
 
 async def echo(websocket):
     # Register the new client
     if websocket not in connected_clients:
-        connected_clients[websocket] = (0, 0)  # Initial position
+        connected_clients[websocket] = {'pos': (0, 0), 'angle': 0}  # Initial position and angle
         print(f"New client connected. Total clients: {len(connected_clients)}")
     
     try:
@@ -30,31 +31,37 @@ async def echo(websocket):
             time_match = None
             id_match = None
             pos_match = None
+            angle_match = None
 
             # Check for the different message patterns
             time_match = re.search(TIME_PATTERN, message)
             id_match = re.search(ID_PATTERN, message)
             pos_match = re.search(POS_PATTERN, message)
+            angle_match = re.search(ANGLE_PATTERN, message)
             
             print(f"time_match: {time_match}")
             print(f"id_match: {id_match}")
             print(f"pos_match: {pos_match}")
+            print(f"angle_match: {angle_match}")
 
             # Update position if both ID and Position are found in the message
             if id_match and pos_match:
                 client_id = id_match.group(1)  # Extract Client ID
                 koi_pos_x = float(pos_match.group(1))  # Extract Koi Position X
                 koi_pos_y = float(pos_match.group(2))  # Extract Koi Position Y
-                print(f"Updating Client ID: {client_id}, Koi Position: ({koi_pos_x}, {koi_pos_y})")
+                koi_angle = float(angle_match.group(1))
+                print(f"Updating Client ID: {client_id}, Koi Position: ({koi_pos_x}, {koi_pos_y}), Angle: {koi_angle}")
                 
-                # Update the connected client's position
-                connected_clients[websocket] = (koi_pos_x, koi_pos_y)
+                # Update the connected client's position and angle
+                connected_clients[websocket] = {'pos': (koi_pos_x, koi_pos_y), 'angle': koi_angle}
 
-            # Prepare the response: append all client coordinates to the echoed message
+
+            # Prepare the response: append all client coordinates and angles to the echoed message
             client_positions = [
-                {"id": id(client), "coords": coords}
+                {"id": id(client), "coords": coords['pos'], "angle": coords['angle']}
                 for client, coords in connected_clients.items()
             ]
+            
             
             # The response includes the original message and the client positions
             response = {

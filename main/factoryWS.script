@@ -1,8 +1,5 @@
 local waiting_for_response = false -- Flag to track if a response is pending
-local last_sent_timestamp = nil -- Store the last sent timestamp
-
 local koi_data = {}  -- Table to store koi instances and their positions
-local client_id = nil
 
 
 -- WebSocket callback function
@@ -46,9 +43,10 @@ function receive_timestamp(data)
 		for client_entry in clients_section:gmatch("{.-}") do
 			local id = client_entry:match("'id': (%d+)")
 			local x, y = client_entry:match("'coords': %(([%d%.%-]+), ([%d%.%-]+)%)")
+			local angle = client_entry:match("'angle': (%d+)")
 			if id and x and y then
 				active_clients[id] = true -- Mark client as active
-				koi(id, tonumber(x), tonumber(y), client_id)
+				koi(id, tonumber(x), tonumber(y), tonumber(angle), client_id)
 			end
 		end
 	end
@@ -80,7 +78,7 @@ end
 
 
 
-function koi(id, x, y, client_id)
+function koi(id, x, y, angle, client_id)
 	-- Check if the koi is the client's
 	local is_client_koi = (id == client_id)
 
@@ -91,7 +89,8 @@ function koi(id, x, y, client_id)
 			instance = nil, -- This will be set later when creating the koi
 			x = x,
 			y = y,
-			target = { x = math.random(0, 360), y = math.random(0, 640) }
+			target = { x = math.random(0, 360), y = math.random(0, 640),
+			angle = 0 }
 		}
 		--print(string.format("Initialized new target for Koi ID %s: (%s, %s)", id, koi_data[id].target.x, koi_data[id].target.y))
 	end
@@ -111,7 +110,26 @@ function koi(id, x, y, client_id)
 			label.set_text("#target", "Target set to: " .. koi_data[id].target.x .. " " .. koi_data[id].target.y)
 		else
 
+			koi_data[id].angle = angle
+			--[[-- Calculate the angle to the target
+			local angle = math.atan2(direction_y, direction_x)  -- Angle in radians
+			print(string.format("Angle to target: %f radians", angle))  -- Print the angle
+
+			-- Adjust the angle by adding 90 degrees (π/2 radians) if the sprite's "forward" direction is along the X-axis
+			angle = angle - math.pi / 2  -- Rotate 90 degrees counterclockwise to align with the sprite's "top"
+
+			-- Normalize the angle to the range [0, 2π)
+			if angle < 0 then
+				angle = angle + 2 * math.pi  -- Wrap the angle to positive if it's negative
+			end
+
+			-- set the tables angle for the koi
+			koi_data[id].angle = angle
 			
+			-- Apply rotation to the koi instance
+			if angle ~= 0 then
+				go.set_rotation(vmath.quat_rotation_z(angle), koi_data[id].instance)
+			end --]]
 
 			-- Move 1 unit closer to the target
 			local step = 1
@@ -130,29 +148,7 @@ function koi(id, x, y, client_id)
 		koi_data[id].y = y
 		go.set_position(vmath.vector3(x, y, 0), koi_data[id].instance)
 
-		-- Calculate the direction to the target
-		local target_x, target_y = koi_data[id].target.x, koi_data[id].target.y
-		local direction_x = target_x - x
-		local direction_y = target_y - y
 
-		-- Calculate the angle to the target
-		local angle = math.atan2(direction_y, direction_x)  -- Angle in radians
-		print(string.format("Angle to target: %f radians", angle))  -- Print the angle
-
-		-- Adjust the angle by adding 90 degrees (π/2 radians) if the sprite's "forward" direction is along the X-axis
-		angle = angle - math.pi / 2  -- Rotate 90 degrees counterclockwise to align with the sprite's "top"
-
-		-- Normalize the angle to the range [0, 2π)
-		if angle < 0 then
-			angle = angle + 2 * math.pi  -- Wrap the angle to positive if it's negative
-		end
-
-		-- Apply rotation to the koi instance
-		if angle ~= 0 then
-			go.set_rotation(vmath.quat_rotation_z(angle), koi_data[id].instance)
-		end
-		
-		
 		--print(string.format("Updated Koi ID %s to position: (%s, %s)", id, x, y))
 	else
 		-- Create new koi
@@ -184,9 +180,10 @@ function send_timestamp(self)
 			if client_id and koi_data[client_id] then
 				local koi_x = koi_data[client_id].x
 				local koi_y = koi_data[client_id].y
+				local koi_angle = koi_data[client_id].angle
 
 				-- Construct the message with the timestamp, client ID, and koi position
-				local timestamp_message = string.format("Timestamp: %.6f, Client ID: %s, Koi Position: (%.2f, %.2f)", timestamp, client_id, koi_x, koi_y)
+				local timestamp_message = string.format("Timestamp: %.6f, Client ID: %s, Koi Position: (%.2f, %.2f), Koi Angle: %.2f", timestamp, client_id, koi_x, koi_y, koi_angle)
 
 				-- Send the message to the server
 				websocket.send(self.connection, timestamp_message)
