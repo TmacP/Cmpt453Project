@@ -1,6 +1,7 @@
 local waiting_for_response = false -- Flag to track if a response is pending
 local koi_data = {}  -- Table to store koi instances and their positions
 local client_id = nil
+local round_trip_time = nil
 
 -- WebSocket callback function
 local function websocket_callback(self, conn, data)
@@ -67,7 +68,7 @@ function receive_timestamp(data)
 	local received_time = socket.gettime()
 	local sent_time = tonumber(data.message:match("Timestamp: ([%d%.]+)"))
 	if sent_time then
-		local round_trip_time = (received_time - sent_time) * 1000
+		round_trip_time = (received_time - sent_time) * 1000
 		local formatted_rtt = string.format("RTT: %d ms", round_trip_time)
 		print(formatted_rtt)  -- Print to console
 		--label.set_text("#rtt", formatted_rtt)  -- Set the label text
@@ -164,9 +165,10 @@ function send_timestamp(self)
 				local koi_x = koi_data[client_id].x
 				local koi_y = koi_data[client_id].y
 				local koi_angle = koi_data[client_id].angle
+				
 
 				-- Construct the message with the timestamp, client ID, and koi position
-				local timestamp_message = string.format("Timestamp: %.6f, Client ID: %s, Koi Position: (%.2f, %.2f), Koi Angle: %.3f", timestamp, client_id, koi_x, koi_y, koi_angle)
+				local timestamp_message = string.format("Timestamp: %.6f, Client ID: %s, Koi Position: (%.2f, %.2f), Koi Angle: %.3f, RTT: %.6f", timestamp, client_id, koi_x, koi_y, koi_angle, round_trip_time)
 
 				-- Send the message to the server
 				websocket.send(self.connection, timestamp_message)

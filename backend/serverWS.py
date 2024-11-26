@@ -4,6 +4,7 @@
 
 import asyncio
 from websockets.asyncio.server import serve
+import sqlite3
 import re
 # A set to keep track of connected clients
 connected_clients = {}
@@ -14,7 +15,37 @@ TIME_PATTERN = r"Timestamp: ([\d.]+)"
 ID_PATTERN = r"Client ID: (\d+)"
 POS_PATTERN = r"Koi Position: \(([\d.]+), ([\d.]+)\)"
 ANGLE_PATTERN = r"Koi Angle: (-?\d+(\.\d*)?)"
+ROUND_TRIP_TIME = r"RTT: ([\d.]+)"
 
+
+# Function to initialize SQLite database
+def init_db():
+    # Connect to SQLite database (or create it if it doesn't exist)
+    conn = sqlite3.connect('client_performance.db')
+    cursor = conn.cursor()
+
+    # Create a table to store client performance data if it doesn't already exist
+    cursor.execute('''CREATE TABLE IF NOT EXISTS performance_data (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        client_id TEXT,
+                        rtt REAL,
+                        num_clients INTEGER,
+                        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                    )''')
+    conn.commit()
+    conn.close()
+
+# Function to insert client performance data into the database
+def insert_performance_data(client_id, rtt, num_clients):
+    conn = sqlite3.connect('client_performance.db')
+    cursor = conn.cursor()
+
+    # Insert the data into the performance_data table
+    cursor.execute('''INSERT INTO performance_data (client_id, rtt, num_clients)
+                      VALUES (?, ?, ?)''', (client_id, rtt, num_clients))
+
+    conn.commit()
+    conn.close()
 
 
 async def echo(websocket):
@@ -34,17 +65,36 @@ async def echo(websocket):
             id_match = None
             pos_match = None
             angle_match = None
+            rtt_match = None
 
             # Check for the different message patterns
             time_match = re.search(TIME_PATTERN, message)
             id_match = re.search(ID_PATTERN, message)
             pos_match = re.search(POS_PATTERN, message)
             angle_match = re.search(ANGLE_PATTERN, message)
+            rtt_match = re.search(ROUND_TRIP_TIME, message)
             
             print(f"time_match: {time_match}")
             print(f"id_match: {id_match}")
             print(f"pos_match: {pos_match}")
             print(f"angle_match: {angle_match}")
+            print(f"rtt_match: {rtt_match}")
+
+
+            # If RTT and Client ID are found, we process them
+            if rtt_match and id_match:
+                client_id = id_match.group(1)  # Extract Client ID
+                rtt_value = float(rtt_match.group(1))  # Extract RTT
+
+                # Get the number of connected clients
+                num_clients = len(connected_clients)
+
+                # Insert the performance data into the database
+                insert_performance_data(client_id, rtt_value, num_clients)
+
+                # Log the inserted data
+                print(f"Inserted data into DB: Client ID = {client_id}, RTT = {rtt_value}, Number of Clients = {num_clients}")
+
 
             # Update position if both ID and Position are found in the message
             if id_match and pos_match and angle_match:
@@ -83,6 +133,10 @@ async def echo(websocket):
         print(f"Client disconnected. Total clients: {len(connected_clients)}")
 
 async def main():
+
+    # Initialize the database
+    init_db()
+
     async with serve(echo, "0.0.0.0", 12345) as server:
         print("Server started, listening on ws://0.0.0.0:12345")
         await server.serve_forever()
