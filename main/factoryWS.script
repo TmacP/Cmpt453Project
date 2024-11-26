@@ -70,8 +70,9 @@ function receive_timestamp(data)
 	local sent_time = tonumber(data.message:match("Timestamp: ([%d%.]+)"))
 	if sent_time then
 		local round_trip_time = (received_time - sent_time) * 1000
-		print(string.format("RTT: %.2f ms", round_trip_time))
-		label.set_text("#rtt", "round_trip_time " .. round_trip_time)
+		local formatted_rtt = string.format("RTT: %d ms", round_trip_time)
+		print(formatted_rtt)  -- Print to console
+		label.set_text("#rtt", formatted_rtt)  -- Set the label text
 		waiting_for_response = false
 	end
 end
