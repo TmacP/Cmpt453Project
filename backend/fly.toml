@@ -1,6 +1,10 @@
 app = 'cmpt453project'
 primary_region = 'ord'
 
+[[mounts]]
+  source = "client_performance"
+  destination = "/data"
+  processes = ["app"]
 
 [[services]]
   internal_port = 12345
@@ -8,15 +12,6 @@ primary_region = 'ord'
 
   [[services.ports]]
     port = "12345"
-
-
-  [[services.ports]]
-    handlers = ["http"]
-    port = "80"
-
-  [[services.ports]]
-    handlers = ["tls", "http"]
-    port = "443"
 
 [[vm]]
   memory = '1gb'
