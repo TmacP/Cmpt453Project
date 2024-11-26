@@ -13,7 +13,8 @@ connected_clients = {}
 TIME_PATTERN = r"Timestamp: ([\d.]+)"
 ID_PATTERN = r"Client ID: (\d+)"
 POS_PATTERN = r"Koi Position: \(([\d.]+), ([\d.]+)\)"
-ANGLE_PATTERN = r"Koi Angle: (\d+)"
+ANGLE_PATTERN = r"Koi Angle: (\d+\.?\d*)"
+
 
 async def echo(websocket):
     # Register the new client
@@ -45,7 +46,7 @@ async def echo(websocket):
             print(f"angle_match: {angle_match}")
 
             # Update position if both ID and Position are found in the message
-            if id_match and pos_match:
+            if id_match and pos_match and angle_match:
                 client_id = id_match.group(1)  # Extract Client ID
                 koi_pos_x = float(pos_match.group(1))  # Extract Koi Position X
                 koi_pos_y = float(pos_match.group(2))  # Extract Koi Position Y

@@ -43,7 +43,7 @@ function receive_timestamp(data)
 		for client_entry in clients_section:gmatch("{.-}") do
 			local id = client_entry:match("'id': (%d+)")
 			local x, y = client_entry:match("'coords': %(([%d%.%-]+), ([%d%.%-]+)%)")
-			local angle = client_entry:match("'angle': (%d+)")
+			local angle = client_entry:match("'angle': (%d+%.?%d*)")
 			if id and x and y then
 				active_clients[id] = true -- Mark client as active
 				koi(id, tonumber(x), tonumber(y), tonumber(angle), client_id)
@@ -204,7 +204,7 @@ function send_timestamp(self)
 	end
 end
 
-
+	
 -- Update function to repeatedly call send_timestamp
 function update(self, dt)
 	send_timestamp(self)  -- Call the consolidated function in the update loop
