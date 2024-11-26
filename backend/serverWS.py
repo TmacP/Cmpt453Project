@@ -13,7 +13,8 @@ connected_clients = {}
 TIME_PATTERN = r"Timestamp: ([\d.]+)"
 ID_PATTERN = r"Client ID: (\d+)"
 POS_PATTERN = r"Koi Position: \(([\d.]+), ([\d.]+)\)"
-ANGLE_PATTERN = r"Koi Angle: (\d+\.?\d*)"
+ANGLE_PATTERN = r"Koi Angle: (-?\d+(\.\d*)?)"
+
 
 
 async def echo(websocket):
