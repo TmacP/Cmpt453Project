@@ -1,6 +1,10 @@
 app = 'cmpt453project'
 primary_region = 'ord'
 
+[build]
+dockerfile = "Dockerfile"
+
+
 [[mounts]]
   source = "client_performance"
   destination = "/data"
