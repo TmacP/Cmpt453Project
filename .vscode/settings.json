@@ -16,7 +16,8 @@
     ],
     "Lua.workspace.library": [
         "~/.config/Code/User/globalStorage/astronachos.defold",
-        "~/.config/Code/User/workspaceStorage/eabed52a0bc98e23177ef54815504da9/astronachos.defold"
+        "~/.config/Code/User/workspaceStorage/eabed52a0bc98e23177ef54815504da9/astronachos.defold",
+        "/Applications/renpy-8.1.1-sdk/vscode/code-portable-data/user-data/User/workspaceStorage/54ef9f0cfaa71f1f6434cb4efccbaa2a/astronachos.defold"
     ],
     "files.associations": {
         "*.project": "ini",
