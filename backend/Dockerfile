@@ -14,15 +14,16 @@ VOLUME /data
 # Copy the SQLite database to the container (initially, you could copy it, but once mounted, Fly.io will handle it)
 COPY client_performance.db /data/client_performance.db
 
+COPY server.crt .
+COPY server.key .
+
 # Install the required Python dependencies
 RUN pip install --no-cache-dir websockets
 
 
-
-
-
 # Expose the port your application runs on
 EXPOSE 12345
-
+ENV PORT=12345
 # Define the default command to run your application
 CMD ["python3", "serverWS.py"]
+

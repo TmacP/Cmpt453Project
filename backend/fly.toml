@@ -15,6 +15,14 @@ dockerfile = "Dockerfile"
   protocol = "tcp"
 
   [[services.ports]]
+    handlers = ["http"]
+    port = "12345"
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = "443"
+
+  [[services.ports]]
     port = "12345"
 
 [[vm]]

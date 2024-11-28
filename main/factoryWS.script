@@ -26,9 +26,9 @@ local function websocket_callback(self, conn, data)
 end
 
 function init(self)
-	self.url =  "wss://0.0.0.0:12345"--"wss://echo.websocket.events"--://66.51.126.183:12345"  -- Use wss:// for secure WebSocket connection
-	    local params = {}
-	    self.connection = websocket.connect(self.url, params, websocket_callback)
+	self.url =  "wss://66.51.126.183:12345"
+	local params = {}
+	self.connection = websocket.connect(self.url, params, websocket_callback)
 end
 function receive_timestamp(data)
 	-- Extract and parse the clients section
