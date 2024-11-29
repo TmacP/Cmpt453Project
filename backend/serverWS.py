@@ -102,7 +102,7 @@ async def echo(websocket):
                 num_clients = len(connected_clients)
 
                 # Store the performance data for periodic DB writes
-                performance_data_to_write.append((client_id, rtt_value, num_clients))
+                #performance_data_to_write.append((client_id, rtt_value, num_clients))
 
             # Update position if both ID and Position are found in the message
             if id_match and pos_match and angle_match:
@@ -151,7 +151,7 @@ async def main():
 
     # Start the server with SSL
     async with serve(echo, "0.0.0.0", 12345, ssl=ssl_context) as server:
-        print("Server started, listening on wss://0.0.0.0:12345")
+        print("Server started")
         await server.serve_forever()
 
 if __name__ == "__main__":
