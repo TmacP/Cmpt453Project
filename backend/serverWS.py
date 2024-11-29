@@ -3,7 +3,8 @@
 """Echo server with client tracking using the asyncio API."""
 
 import asyncio
-from websockets.asyncio.server import serve
+from websockets.server import serve
+
 import ssl
 import sqlite3
 import re
