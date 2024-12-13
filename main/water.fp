@@ -3,7 +3,7 @@
 #define tide 0.1
 #define foamthickness 0.1
 #define timescale 1.0
-#define WATER_COL vec4(0.04, 0.38, 0.88, 1.0)
+#define WATER_COL vec4(0.04, 0.38, 0.88, 0.0)
 #define WATER2_COL vec4(0.04, 0.35, 0.78, 0.5)
 #define FOAM_COL vec4(0.8125, 0.9609, 0.9648, 0.3)
 
