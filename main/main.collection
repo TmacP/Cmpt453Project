@@ -6,10 +6,14 @@ instances {
 scale_along_z: 0
 embedded_instances {
   id: "water"
-  data: "embedded_components {\n"
+  data: "components {\n"
+  "  id: \"water\"\n"
+  "  component: \"/main/water.script\"\n"
+  "}\n"
+  "embedded_components {\n"
   "  id: \"model\"\n"
   "  type: \"model\"\n"
-  "  data: \"mesh: \\\"/builtins/assets/meshes/quad_2x2.dae\\\"\\n"
+  "  data: \"mesh: \\\"/main/quad.dae\\\"\\n"
   "name: \\\"{{NAME}}\\\"\\n"
   "materials {\\n"
   "  name: \\\"default\\\"\\n"

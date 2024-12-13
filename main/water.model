@@ -1,4 +1,4 @@
-mesh: "/builtins/assets/meshes/quad_2x2.dae"
+mesh: "/main/quad.dae"
 name: "water"
 materials {
   name: "default"

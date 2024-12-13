@@ -1,0 +1,9 @@
+function init(self)
+	-- keep track of time in self.t
+	self.t = 0
+end
+
+function update(self, dt)
+	self.t = self.t + dt
+	model.set_constant("#model", "time", vmath.vector4(self.t, 0, 0, 0))
+end
