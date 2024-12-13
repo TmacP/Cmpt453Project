@@ -25,7 +25,7 @@ local function websocket_callback(self, conn, data)
 end
 
 function init(self)
-	self.url =  "wss://0.0.0.0:12345"--"wss://66.51.126.183:12345"
+	self.url =  "wss://66.51.126.183:12345"--"wss://localhost:12345"--
 	local params = {}
 	self.connection = websocket.connect(self.url, params, websocket_callback)
 end
