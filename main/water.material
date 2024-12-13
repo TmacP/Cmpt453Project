@@ -1,5 +1,5 @@
 name: "water"
-tags: "tile"
+tags: "particle"
 vertex_program: "/main/water.vp"
 fragment_program: "/main/water.fp"
 vertex_constants {
