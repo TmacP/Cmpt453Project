@@ -19,13 +19,12 @@ local function websocket_callback(self, conn, data)
 			print("Handshake response body: '" .. tostring(data.handshake_response.response) .. "'")
 		end
 	elseif data.event == websocket.EVENT_MESSAGE then
-		pprint(data)
 		receive_timestamp(data)  -- Process the echoed timestamp
 	end
 end
 
 function init(self)
-	self.url =  "wss://cmpt453project.fly.dev"--"wss://localhost:12345"--
+	self.url =  "ws://localhost:12345"--"wss://cmpt453project.fly.dev"
 	local params = {}
 	self.connection = websocket.connect(self.url, params, websocket_callback)
 end
@@ -75,10 +74,9 @@ function koi(id, x, y, angle)
 			instance = nil, -- This will be set later when creating the koi
 			x = x,
 			y = y,
-			target = { x = math.random(0, 360), y = math.random(0, 640),
-			angle = 0 }
+			target = { x = math.random(0, 360), y = math.random(0, 640)},
+			angle = angle -- Use the passed-in angle as the initial rotation
 		}
-		--print(string.format("Initialized new target for Koi ID %s: (%s, %s)", id, koi_data[id].target.x, koi_data[id].target.y))
 	end
 
 	if is_client_koi then
@@ -92,19 +90,22 @@ function koi(id, x, y, angle)
 			-- If the koi is close enough to the target, set a new random target
 			koi_data[id].target.x = math.random(0, 360)
 			koi_data[id].target.y = math.random(0, 640)
-			--print(string.format("Reached target. New target set for Koi ID %s: (%s, %s)", id, koi_data[id].target.x, koi_data[id].target.y))
-			--label.set_text("#target", "Target set to: " .. koi_data[id].target.x .. " " .. koi_data[id].target.y)
 		else
-			
-			local new_angle = math.atan2(direction_y, direction_x )  -- Angle in radians
-			new_angle = new_angle - math.pi / 2  -- Rotate 90 degrees counterclockwise
-			-- Update the koi's ang
-			koi_data[id].angle = new_angle
+			-- Calculate the desired angle to the target
+			local new_angle = math.atan2(direction_y, direction_x)
+			new_angle = new_angle - math.pi / 2 -- Rotate 90 degrees counterclockwise
+
+			-- Smoothly interpolate toward the new angle
+			local turn_speed = 0.075 -- Adjust for smoother turning
+			koi_data[id].angle = koi_data[id].angle + (new_angle - koi_data[id].angle) * turn_speed
 
 			-- Move 1 unit closer to the target
-			local step = 1
+			local step = 0.5
+			local step_x = math.cos(koi_data[id].angle) * step
+			local step_y = math.sin(koi_data[id].angle) * step
 			local step_x = (direction_x / distance) * step
 			local step_y = (direction_y / distance) * step
+			
 
 			-- Update the koi's position
 			x = x + step_x
@@ -113,15 +114,11 @@ function koi(id, x, y, angle)
 	end
 
 	if koi_data[id].instance then
-		-- Update existing koi position
+		-- Update existing koi position and rotation
 		koi_data[id].x = x
 		koi_data[id].y = y
-
 		go.set_position(vmath.vector3(x, y, 0), koi_data[id].instance)
 		go.set_rotation(vmath.quat_rotation_z(koi_data[id].angle), koi_data[id].instance)
-
-		
-		--print(string.format("Updated Koi ID %s to position: (%s, %s)", id, x, y))
 	else
 		-- Create new koi
 		local position = vmath.vector3(x, y, 0) -- Assuming z = 0 for 2D position
@@ -129,9 +126,10 @@ function koi(id, x, y, angle)
 		koi_data[id].instance = new_koi
 		koi_data[id].x = x
 		koi_data[id].y = y
-		--print(string.format("Created new Koi ID %s at position: (%s, %s)", id, x, y))
+		koi_data[id].angle = angle -- Use the passed-in angle here
 	end
 end
+
 
 
 function finalize(self)
@@ -156,13 +154,12 @@ function send_timestamp(self)
 				
 
 				-- Construct the message with the timestamp, client ID, and koi position
-				local timestamp_message = string.format("Timestamp: %.6f, Client ID: %s, Koi Position: (%.2f, %.2f), Koi Angle: %.3f", timestamp, client_id, koi_x, koi_y, koi_angle)
+				local timestamp_message = string.format("Client ID: %s, Koi Position: (%.2f, %.2f), Koi Angle: %.3f", client_id, koi_x, koi_y, koi_angle)
 
 				-- Send the message to the server
 				websocket.send(self.connection, timestamp_message)
 				print("Sent timestamp: " .. timestamp_message)  -- Log the sent timestamp
 
-				last_sent_timestamp = timestamp  -- Record the sent timestamp
 				waiting_for_response = true  -- Set flag to wait for the response
 			else
 				local timestamp_message = "Timestamp: " .. tostring(timestamp)

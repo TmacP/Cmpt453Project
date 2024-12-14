@@ -14,7 +14,6 @@ TIME_PATTERN = r"Timestamp: ([\d.]+)"
 ID_PATTERN = r"Client ID: (\d+)"
 POS_PATTERN = r"Koi Position: \(([\d.]+), ([\d.]+)\)"
 ANGLE_PATTERN = r"Koi Angle: (-?\d+(\.\d*)?)"
-ROUND_TRIP_TIME = r"RTT: ([\d.]+)"
 
 async def echo(websocket):
     # Register the new client
@@ -32,20 +31,12 @@ async def echo(websocket):
             id_match = None
             pos_match = None
             angle_match = None
-            rtt_match = None
 
             # Check for the different message patterns
             time_match = re.search(TIME_PATTERN, message)
             id_match = re.search(ID_PATTERN, message)
             pos_match = re.search(POS_PATTERN, message)
             angle_match = re.search(ANGLE_PATTERN, message)
-            rtt_match = re.search(ROUND_TRIP_TIME, message)
-
-            # If RTT and Client ID are found, we process them
-            if rtt_match and id_match:
-                client_id = id_match.group(1)  # Extract Client ID
-                rtt_value = float(rtt_match.group(1))  # Extract RTT
-                print(f"Received RTT: {rtt_value} from Client ID: {client_id}")
             
             # Update position if both ID and Position are found in the message
             if id_match and pos_match and angle_match:
@@ -67,11 +58,10 @@ async def echo(websocket):
             
             # The response includes the original message and the client positions
             response = {
-                "message": message,  # The original received message
                 "your_id": id(websocket),  # Include the client's ID
                 "clients": client_positions  # The list of the clients, and their positions
             }
-            
+            print(f"Response: {response}")
             # Send the response back to the client
             await websocket.send(str(response))
     except Exception as e:
