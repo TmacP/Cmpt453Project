@@ -1,16 +1,12 @@
 #!/usr/bin/env python
 
-"""Echo server with client tracking using the asyncio API."""
-
 import asyncio
-from websockets.server import serve
-
-import ssl
-import sqlite3
 import re
-import time
+import http
+import signal
+from websockets.asyncio.server import serve
 
-# A set to keep track of connected clients
+# A dictionary to keep track of connected clients
 connected_clients = {}
 
 # Regular expressions for matching different message formats
@@ -20,54 +16,6 @@ POS_PATTERN = r"Koi Position: \(([\d.]+), ([\d.]+)\)"
 ANGLE_PATTERN = r"Koi Angle: (-?\d+(\.\d*)?)"
 ROUND_TRIP_TIME = r"RTT: ([\d.]+)"
 
-# Store performance data for periodic write to DB
-performance_data_to_write = []
-
-# Function to initialize SQLite database
-def init_db():
-    # Connect to SQLite database (or create it if it doesn't exist)
-    conn = sqlite3.connect('client_performance.db')
-    cursor = conn.cursor()
-
-    # Create a table to store client performance data if it doesn't already exist
-    cursor.execute('''CREATE TABLE IF NOT EXISTS performance_data (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        client_id TEXT,
-                        rtt REAL,
-                        num_clients INTEGER,
-                        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-                    )''')
-    conn.commit()
-    conn.close()
-
-# Function to insert client performance data into the database
-def insert_performance_data(client_id, rtt, num_clients):
-    conn = sqlite3.connect('client_performance.db')
-    cursor = conn.cursor()
-
-    # Insert the data into the performance_data table
-    cursor.execute('''INSERT INTO performance_data (client_id, rtt, num_clients)
-                      VALUES (?, ?, ?)''', (client_id, rtt, num_clients))
-
-    conn.commit()
-    conn.close()
-
-# Function to periodically write the performance data to DB
-async def write_performance_data():
-    global performance_data_to_write
-    while True:
-        # Wait for 1 second to accumulate data
-        await asyncio.sleep(1)
-
-        # Write collected data to the DB
-        for data in performance_data_to_write:
-            client_id, rtt, num_clients = data
-            insert_performance_data(client_id, rtt, num_clients)
-            print(f"Inserted data into DB: Client ID = {client_id}, RTT = {rtt}, Number of Clients = {num_clients}")
-
-        # Clear the list after writing to DB
-        performance_data_to_write.clear()
-
 async def echo(websocket):
     # Register the new client
     if websocket not in connected_clients:
@@ -76,7 +24,7 @@ async def echo(websocket):
     
     try:
         async for message in websocket:
-            # Log the received message
+            # Decode the received message
             message = message.decode("utf-8")
             
             # Initialize matches as None
@@ -97,19 +45,14 @@ async def echo(websocket):
             if rtt_match and id_match:
                 client_id = id_match.group(1)  # Extract Client ID
                 rtt_value = float(rtt_match.group(1))  # Extract RTT
-
-                # Get the number of connected clients
-                num_clients = len(connected_clients)
-
-                # Store the performance data for periodic DB writes
-                #performance_data_to_write.append((client_id, rtt_value, num_clients))
-
+                print(f"Received RTT: {rtt_value} from Client ID: {client_id}")
+            
             # Update position if both ID and Position are found in the message
             if id_match and pos_match and angle_match:
                 client_id = id_match.group(1)  # Extract Client ID
                 koi_pos_x = float(pos_match.group(1))  # Extract Koi Position X
                 koi_pos_y = float(pos_match.group(2))  # Extract Koi Position Y
-                koi_angle = float(angle_match.group(1))
+                koi_angle = float(angle_match.group(1))  # Extract Angle
 
                 print(f"Updating Client ID: {client_id}, Koi Position: ({koi_pos_x}, {koi_pos_y}), Angle: {koi_angle}")
                 
@@ -124,9 +67,9 @@ async def echo(websocket):
             
             # The response includes the original message and the client positions
             response = {
-                "message": message,  # the echoed timestamp to calculate rtt
+                "message": message,  # The original received message
                 "your_id": id(websocket),  # Include the client's ID
-                "clients": client_positions  # the list of the clients, and their positions
+                "clients": client_positions  # The list of the clients, and their positions
             }
             
             # Send the response back to the client
@@ -138,21 +81,25 @@ async def echo(websocket):
         connected_clients.pop(websocket, None)
         print(f"Client disconnected. Total clients: {len(connected_clients)}")
 
+async def health_check(connection, request):
+    if request.path == "/healthz":
+        return connection.respond(http.HTTPStatus.OK, "OK\n")
+
 async def main():
-    # Initialize the database
-    init_db()
+    # Set the stop condition when receiving SIGTERM.
+    loop = asyncio.get_running_loop()
+    stop = loop.create_future()
+    loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
 
-    # Start the periodic write task
-    asyncio.create_task(write_performance_data())
-
-    # Create SSL context
-    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    ssl_context.load_cert_chain(certfile="server.crt", keyfile="server.key")  # Use your certificate and key files
-
-    # Start the server with SSL
-    async with serve(echo, "0.0.0.0", 12345, ssl=ssl_context) as server:
+    # Start the server
+    async with serve(
+        echo,
+        host="0.0.0.0",
+        port=12345,
+        process_request=health_check,
+    ):
         print("Server started")
-        await server.serve_forever()
+        await stop
 
 if __name__ == "__main__":
     asyncio.run(main())

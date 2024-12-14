@@ -14,16 +14,12 @@ dockerfile = "Dockerfile"
   internal_port = 12345
   protocol = "tcp"
 
-  [[services.ports]]
-    handlers = ["http"]
-    port = "12345"
+  [[services.http_checks]]
+    path = "/healthz"
 
   [[services.ports]]
     handlers = ["tls", "http"]
-    port = "443"
-
-  [[services.ports]]
-    port = "12345"
+    port = 443
 
 [[vm]]
   memory = '1gb'
