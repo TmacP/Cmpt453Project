@@ -43,7 +43,7 @@ function receive_timestamp(data)
 		for client_entry in clients_section:gmatch("{.-}") do
 			local id = client_entry:match("'id': (%d+)")
 			local x, y = client_entry:match("'coords': %(([%d%.%-]+), ([%d%.%-]+)%)")
-			local angle = client_entry:match("'angle': (%d+%.?%d*)")
+			local angle = client_entry:match("'angle': ([%-]?%d+%.?%d*)")
 			if id and x and y then
 				active_clients[id] = true -- Mark client as active
 				koi(id, tonumber(x), tonumber(y), tonumber(angle))
@@ -82,6 +82,7 @@ function koi(id, x, y, angle)
 		}
 	end
 
+	-- if the koi is the clients
 	if is_client_koi then
 		-- Get the target for the current koi
 		local target_x, target_y = koi_data[id].target.x, koi_data[id].target.y
@@ -104,25 +105,23 @@ function koi(id, x, y, angle)
 
 			-- Move 1 unit closer to the target
 			local step = 1
-			local step_x = math.cos(koi_data[id].angle) * step
-			local step_y = math.sin(koi_data[id].angle) * step
 			local step_x = (direction_x / distance) * step
 			local step_y = (direction_y / distance) * step
 			
-
-			-- Update the koi's position and angle
+			-- Update the koi's position
 			x = x + step_x
 			y = y + step_y
 		end
 	end
 
+	-- if the koi exists
 	if koi_data[id].instance then
 		-- Update existing koi position and rotation
 		koi_data[id].x = x
 		koi_data[id].y = y
-		--koi_data[id].angle = angle
+
 		go.set_position(vmath.vector3(x, y, 0), koi_data[id].instance)
-		go.set_rotation(vmath.quat_rotation_z(koi_data[id].angle), koi_data[id].instance)
+		go.set_rotation(vmath.quat_rotation_z(angle), koi_data[id].instance)
 	else
 		-- Create new koi
 		local position = vmath.vector3(x, y, 0) -- Assuming z = 0 for 2D position
