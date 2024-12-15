@@ -27,7 +27,7 @@ function init(self)
 	-- which server do you want local or fly?
 	--self.url =  "wss://cmpt453project.fly.dev"
 	self.url =  "ws://localhost:12345"
-	
+		
 	local params = {}
 	self.connection = websocket.connect(self.url, params, websocket_callback)
 end
