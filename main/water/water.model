@@ -1,6 +1,6 @@
-mesh: "/main/quad.dae"
+mesh: "/main/water/quad.dae"
 name: "water"
 materials {
   name: "default"
-  material: "/main/water.material"
+  material: "/main/water/water.material"
 }

@@ -5,7 +5,7 @@ embedded_components {
   "material: \"/main/koistyle/koistyle.material\"\n"
   "textures {\n"
   "  sampler: \"texture_sampler\"\n"
-  "  texture: \"/main/koi.tilesource\"\n"
+  "  texture: \"/main/assets/koi.tilesource\"\n"
   "}\n"
   ""
 }

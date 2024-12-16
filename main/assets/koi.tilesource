@@ -1,4 +1,4 @@
-image: "/main/koi.png"
+image: "/main/assets/koi.png"
 tile_width: 64
 tile_height: 128
 collision_groups: "koi"

@@ -1,7 +1,7 @@
 name: "water"
 tags: "particle"
-vertex_program: "/main/water.vp"
-fragment_program: "/main/water.fp"
+vertex_program: "/main/water/water.vp"
+fragment_program: "/main/water/water.fp"
 vertex_constants {
   name: "view_proj"
   type: CONSTANT_TYPE_VIEWPROJ
