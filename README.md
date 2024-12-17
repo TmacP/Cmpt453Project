@@ -77,3 +77,5 @@ Follow these steps to set up and run the server:
 	--self.url =  "wss://cmpt453project.fly.dev"
 	self.url =  "ws://localhost:12345"
     ```
+
+# NOTE. Defold wont start if you create the virtual environment before you run Defold. so just create that after you start the project and will have to delete the dir once you need to restart. Weird bug but not sure why happens
