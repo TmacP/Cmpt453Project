@@ -1,6 +1,15 @@
 # Koi Idle Game Development
 
+## Description.
+A multiplayer idle game that explores concepts in social computing; specifically how can online games be designed so players choose to cooperate rather then compete for finite resources (The tragedy of the commons). here the goal is to develop fish that have rare colours and patters but to do so players will have to choose to cooperate and share the limited resources since a player can't reporoduce by themself.
+
+## Target and monitization
+Target is web. monitization would be typical: iap to remove banner ad at bottom of screen, or rewards for watching ad. Was thinking of trying to get game on poki.com but they take 50% so maybe just itch.io would be better
+
 ## TODO
+
+- [ ] **Fix broken shader**
+  - for some reason the water shader doesn't work on mobile. it works with the shader in godot though so not sure what is up.
 
 - [ ] **User Login and Account Creation**
   - Decide between implementing a custom authentication system or integrating third-party services like PlayFab or Google Play.
@@ -78,4 +87,5 @@ Follow these steps to set up and run the server:
 	self.url =  "ws://localhost:12345"
     ```
 
-# NOTE. Defold wont start if you create the virtual environment before you run Defold. so just create that after you start the project and will have to delete the dir once you need to restart. Weird bug but not sure why happens
+# NOTE. 
+Defold wont start if you create the virtual environment before you run Defold. so just create that after you start the project and will have to delete the dir once you need to restart. Weird bug but not sure why happens
