@@ -9,10 +9,8 @@
 
 #define OCTAVE 6
 
-// texture coordinates that are set in the vertex shader
 varying mediump vec2 var_texcoord0;
 
-// time uniform that is altered by script
 uniform lowp vec4 time;
 
 float rand(vec2 coords) {
@@ -46,11 +44,11 @@ float fbm(vec2 coords) {
 
 void main() {
 	vec2 UV = var_texcoord0;
-	float time = time.x * timescale + 0.25;
-	float fbmval = fbm(vec2(UV.x * mulscale + 0.2 * sin(0.3 * time) + 0.15 * time, -0.05 * time + UV.y * mulscale + 0.1 * cos(0.68 * time)));
-	float fbmvalshadow = fbm(vec2(UV.x * mulscale + 0.2 * sin(-0.6 * time + 25.0 * UV.y) + 0.15 * time + 3.0, -0.05 * time + UV.y * mulscale + 0.13 * cos(-0.68 * time)) - 7.0 + 0.1 * sin(0.43 * time));
-	float myheight = height + tide * sin(time + 5.0 * UV.x - 8.0 * UV.y);
-	float shadowheight = height + tide * 1.3 * cos(time + 2.0 * UV.x - 2.0 * UV.y);
+	float newtime = time.x * timescale + 0.25;
+	float fbmval = fbm(vec2(UV.x * mulscale + 0.2 * sin(0.3 * newtime) + 0.15 * newtime, -0.05 * newtime + UV.y * mulscale + 0.1 * cos(0.68 * newtime)));
+	float fbmvalshadow = fbm(vec2(UV.x * mulscale + 0.2 * sin(-0.6 * newtime + 25.0 * UV.y) + 0.15 * newtime + 3.0, -0.05 * newtime + UV.y * mulscale + 0.13 * cos(-0.68 * newtime)) - 7.0 + 0.1 * sin(0.43 * newtime));
+	float myheight = height + tide * sin(newtime + 5.0 * UV.x - 8.0 * UV.y);
+	float shadowheight = height + tide * 1.3 * cos(newtime + 2.0 * UV.x - 2.0 * UV.y);
 	float withinFoam = step(myheight, fbmval) * step(fbmval, myheight + foamthickness);
 	float shadow = (1.0 - withinFoam) * step(shadowheight, fbmvalshadow) * step(fbmvalshadow, shadowheight + foamthickness * 0.7);
 	vec4 color = withinFoam * FOAM_COL + shadow * WATER2_COL + ((1.0 - withinFoam) * (1.0 - shadow)) * WATER_COL;
