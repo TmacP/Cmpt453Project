@@ -1,0 +1,20 @@
+
+function init(self)
+	msg.post(".", "acquire_input_focus") -- Acquire input focus
+end
+
+function on_input(self, action_id, action)
+	if action_id == hash("touch") and action.pressed then
+		local button_create = gui.get_node("create")
+		local button_login = gui.get_node("login")
+
+		if gui.pick_node(button_login, action.x, action.y) then
+			-- Post the message to the input script
+			msg.post("/art", "login_request")
+		elseif gui.pick_node(button_create, action.x, action.y) then
+
+			-- Post the message to the input script
+			msg.post("/art", "create_request")
+		end
+	end
+end
