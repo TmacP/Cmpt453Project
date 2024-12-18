@@ -1,20 +1,20 @@
-#define mulscale 5.0
-#define height 0.6
-#define tide 0.1
+#define mulscale 2.5
+#define height 0.3
+#define tide 0.3
 #define foamthickness 0.1
-#define timescale 1.0
+#define timescale 0.45
 #define WATER_COL vec4(0.04, 0.38, 0.88, 0.0)
 #define WATER2_COL vec4(0.04, 0.35, 0.78, 0.5)
-#define FOAM_COL vec4(0.8125, 0.9609, 0.9648, 0.3)
+#define FOAM_COL vec4(0.8125, 0.9609, 0.9648, 0.05)
 
-#define OCTAVE 6
+#define OCTAVE 3
 
 varying mediump vec2 var_texcoord0;
 
 uniform lowp vec4 time;
 
 float rand(vec2 coords) {
-	return fract(sin(dot(coords, vec2(23.53, 44.0))) * 42350.45);
+	return fract(sin(dot(coords, vec2(23.53, 44.0))) * 60.45);
 }
 
 float perlin(vec2 coords) {
