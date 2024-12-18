@@ -8,7 +8,7 @@ Target is web. monitization would be typical: iap to remove banner ad at bottom 
 
 ## TODO
 
-- [ ] **Fix broken shader**
+- [x] **Fix broken shader**
   - for some reason the water shader doesn't work on mobile. it works with the shader in godot though so not sure what is up.
 
 - [ ] **User Login and Account Creation**
@@ -42,7 +42,7 @@ Target is web. monitization would be typical: iap to remove banner ad at bottom 
 - [ ] **Camera Control**
   - Implement camera functionality to follow the player's koi, providing a dynamic viewing experience.
 
-## Running the Server
+## Running the Server in /backend
 
 Follow these steps to set up and run the server:
 
