@@ -25,8 +25,8 @@ end
 
 function init(self)
 	-- which server do you want local or fly?
-	--self.url =  "wss://cmpt453project.fly.dev"
-	self.url =  "ws://localhost:12345"
+	self.url =  "wss://cmpt453project.fly.dev"
+	--self.url =  "ws://localhost:12345"
 		
 	local params = {}
 	self.connection = websocket.connect(self.url, params, websocket_callback)
@@ -161,7 +161,7 @@ function send_timestamp(self)
 
 				-- Send the message to the server
 				websocket.send(self.connection, timestamp_message)
-				print("Sent timestamp: " .. timestamp_message)  -- Log the sent timestamp
+				--print("Sent timestamp: " .. timestamp_message)  -- Log the sent timestamp
 
 				waiting_for_response = true  -- Set flag to wait for the response
 			else

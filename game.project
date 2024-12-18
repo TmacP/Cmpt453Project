@@ -12,9 +12,6 @@ high_dpi = 0
 [android]
 input_method = HiddenInputField
 
-[html5]
-scale_mode = stretch
-
 [project]
 title = Koi Keep
 publisher = Cozy Cachet
@@ -28,4 +25,9 @@ max_tile_count = 5000
 clear_color_red = 0.04
 clear_color_green = 0.38
 clear_color_blue = 0.88
+
+[html5]
+show_made_with_defold = 0
+show_fullscreen_button = 0
+show_console_banner = 0
 
