@@ -30,4 +30,5 @@ clear_color_blue = 0.88
 show_made_with_defold = 0
 show_fullscreen_button = 0
 show_console_banner = 0
+splash_image = /main/water/blank.png
 

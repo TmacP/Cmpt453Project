@@ -1,4 +1,12 @@
+fonts {
+  name: "default"
+  font: "/builtins/fonts/default.font"
+}
 nodes {
+  position {
+    x: 200.0
+    y: 374.0
+  }
   size {
     x: 200.0
     y: 100.0
@@ -13,13 +21,23 @@ nodes {
     x: 200.0
     y: 100.0
   }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
   type: TYPE_TEXT
   text: "Create Account"
+  font: "default"
   id: "create"
   parent: "Create"
   inherit_alpha: true
 }
 nodes {
+  position {
+    x: 179.0
+    y: 216.0
+  }
   size {
     x: 200.0
     y: 100.0
@@ -34,9 +52,15 @@ nodes {
     x: 200.0
     y: 100.0
   }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
   type: TYPE_TEXT
   text: "Login\n"
   ""
+  font: "default"
   id: "login"
   parent: "Login"
   inherit_alpha: true

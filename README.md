@@ -8,11 +8,11 @@ Target is web. monitization would be typical: iap to remove banner ad at bottom 
 
 ## TODO
 
-- [x] **Fix broken shader**
-  - for some reason the water shader doesn't work on mobile. it works with the shader in godot though so not sure what is up.
+- [ ] **Fix broken shader**
+  - foam needs to be above the waves.
 
 - [ ] **User Login and Account Creation**
-  - Decide between implementing a custom authentication system or integrating third-party services like PlayFab or Google Play.
+  - basic sqlite3 db for now
 
 - [ ] **Simulate Koi Genetics**
   - Render fish based on genetic data using a "koistyle" shader to ensure each koi has unique characteristics.
@@ -28,6 +28,9 @@ Target is web. monitization would be typical: iap to remove banner ad at bottom 
 
 - [ ] **Fish Food System**
   - Allow players to feed the pond, which impacts the game's idle mechanics and helps in maintaining fish health and growth.
+
+- [ ] **Pond Decoration System**
+  - Allow players to decorate the pond, which impacts the game's idle mechanics and helps in maintaining fish health and growth.
 
 - [ ] **Fish Aquarium Management**
   - **Pond Management:**
