@@ -3,9 +3,7 @@
 #define tide 0.3
 #define foamthickness 0.1
 #define timescale 0.45
-#define WATER_COL vec4(0.04, 0.38, 0.88, 0.0)
-#define WATER2_COL vec4(0.04, 0.35, 0.78, 0.5)
-#define FOAM_COL vec4(0.8125, 0.9609, 0.9648, 0.05)
+#define FOAM_COL vec4(0.8125, 0.9609, 0.9648, 0.5)
 
 #define OCTAVE 3
 
@@ -45,12 +43,16 @@ float fbm(vec2 coords) {
 void main() {
 	vec2 UV = var_texcoord0;
 	float newtime = time.x * timescale + 0.25;
-	float fbmval = fbm(vec2(UV.x * mulscale + 0.2 * sin(0.3 * newtime) + 0.15 * newtime, -0.05 * newtime + UV.y * mulscale + 0.1 * cos(0.68 * newtime)));
-	float fbmvalshadow = fbm(vec2(UV.x * mulscale + 0.2 * sin(-0.6 * newtime + 25.0 * UV.y) + 0.15 * newtime + 3.0, -0.05 * newtime + UV.y * mulscale + 0.13 * cos(-0.68 * newtime)) - 7.0 + 0.1 * sin(0.43 * newtime));
+
+	float fbmval = fbm(vec2(
+		UV.x * mulscale + 0.2 * sin(0.3 * newtime) + 0.15 * newtime,
+		-0.05 * newtime + UV.y * mulscale + 0.1 * cos(0.68 * newtime)
+	));
+
 	float myheight = height + tide * sin(newtime + 5.0 * UV.x - 8.0 * UV.y);
-	float shadowheight = height + tide * 1.3 * cos(newtime + 2.0 * UV.x - 2.0 * UV.y);
 	float withinFoam = step(myheight, fbmval) * step(fbmval, myheight + foamthickness);
-	float shadow = (1.0 - withinFoam) * step(shadowheight, fbmvalshadow) * step(fbmvalshadow, shadowheight + foamthickness * 0.7);
-	vec4 color = withinFoam * FOAM_COL + shadow * WATER2_COL + ((1.0 - withinFoam) * (1.0 - shadow)) * WATER_COL;
+
+	vec4 color = withinFoam * FOAM_COL;
+
 	gl_FragColor = color;
 }
