@@ -130,6 +130,7 @@ function koi(id, x, y, angle)
 		koi_data[id].x = x
 		koi_data[id].y = y
 		koi_data[id].angle = angle -- Use the passed-in angle here
+		particlefx.play(koi_data[id].instance)
 	end
 end
 

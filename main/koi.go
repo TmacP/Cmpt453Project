@@ -1,3 +1,14 @@
+components {
+  id: "koi"
+  component: "/main/koi.particlefx"
+  position {
+    y: 27.0
+  }
+  rotation {
+    x: 1.0
+    w: 6.123234E-17
+  }
+}
 embedded_components {
   id: "sprite"
   type: "sprite"
