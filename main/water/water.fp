@@ -1,11 +1,11 @@
 #define mulscale 2.5
 #define height 0.3
 #define tide 0.3
-#define foamthickness 0.1
-#define timescale 0.45
+#define foamthickness 0.0175
+#define timescale 0.2
 #define FOAM_COL vec4(0.8125, 0.9609, 0.9648, 0.1)
 
-#define OCTAVE 3
+#define OCTAVE 1
 
 varying mediump vec2 var_texcoord0;
 
