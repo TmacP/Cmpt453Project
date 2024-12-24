@@ -2,7 +2,7 @@
 #define height 0.3
 #define tide 0.3
 #define foamthickness 0.0175
-#define timescale 0.2
+#define timescale 0.1
 #define FOAM_COL vec4(0.8125, 0.9609, 0.9648, 0.1)
 
 #define OCTAVE 1

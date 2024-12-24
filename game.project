@@ -1,6 +1,6 @@
 [bootstrap]
 main_collection = /main/main.collectionc
-render = /main/water/water.renderc
+render = /orthographic/render/orthographic.renderc
 
 [script]
 shared_state = 1
@@ -18,6 +18,8 @@ title = Koi Keep
 publisher = Cozy Cachet
 developer = Tristen MacPherson
 dependencies#0 = https://github.com/defold/extension-websocket/archive/master.zip
+dependencies#1 = https://github.com/subsoap/defsave/archive/master.zip
+dependencies#2 = https://github.com/britzl/defold-orthographic/archive/master.zip
 
 [tilemap]
 max_tile_count = 5000
@@ -31,5 +33,5 @@ clear_color_blue = 0.88
 show_made_with_defold = 0
 show_fullscreen_button = 0
 show_console_banner = 0
-splash_image = /main/water/blank.png
+splash_image = /main/assets/blank.png
 

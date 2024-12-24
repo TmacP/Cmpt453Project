@@ -131,6 +131,10 @@ function koi(id, x, y, angle)
 		koi_data[id].y = y
 		koi_data[id].angle = angle -- Use the passed-in angle here
 		particlefx.play(koi_data[id].instance)
+		
+		local client_koi = koi_data[client_id].instance
+
+		msg.post("camera", "follow", { target = hash(client_koi), lerp = 0.7, horizontal = true, vertical = true, immediate = true })
 	end
 end
 

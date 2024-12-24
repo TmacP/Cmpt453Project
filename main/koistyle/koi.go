@@ -1,6 +1,6 @@
 components {
   id: "koi"
-  component: "/main/koi.particlefx"
+  component: "/main/koistyle/koi.particlefx"
   position {
     y: 27.0
   }

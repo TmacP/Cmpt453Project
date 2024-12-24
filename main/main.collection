@@ -3,6 +3,28 @@ instances {
   id: "factory"
   prototype: "/main/factory.go"
 }
+instances {
+  id: "camera"
+  prototype: "/orthographic/camera.go"
+  component_properties {
+    id: "script"
+    properties {
+      id: "follow"
+      value: "true"
+      type: PROPERTY_TYPE_BOOLEAN
+    }
+    properties {
+      id: "follow_immediately"
+      value: "true"
+      type: PROPERTY_TYPE_BOOLEAN
+    }
+    properties {
+      id: "follow_lerp"
+      value: "0.0"
+      type: PROPERTY_TYPE_NUMBER
+    }
+  }
+}
 scale_along_z: 0
 embedded_instances {
   id: "water"
@@ -27,7 +49,7 @@ embedded_instances {
     y: 320.0
   }
   scale3 {
-    x: 180.0
-    y: 320.0
+    x: 360.0
+    y: 640.0
   }
 }

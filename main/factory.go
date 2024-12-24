@@ -5,6 +5,6 @@ components {
 embedded_components {
   id: "koi_factory"
   type: "factory"
-  data: "prototype: \"/main/koi.go\"\n"
+  data: "prototype: \"/main/koistyle/koi.go\"\n"
   ""
 }
