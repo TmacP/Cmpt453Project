@@ -1,0 +1,73 @@
+local druid = require("druid.druid")
+local panthera = require("panthera.panthera")
+
+-- Define animation table for the button
+local animation = require("main.egg.basic_button_hold_panthera")
+
+-- Long click callback
+local function on_button_long_click(self, custom_args, button_instance, hold_time)
+	print("Button long clicked!")
+	print("Custom argument:", custom_args)
+	print("Hold time:", hold_time)
+
+	-- Play the "complete" animation on long click
+	
+	panthera.play(self.animation, "complete")
+end
+
+function init(self)
+	self.druid = druid.new(self)
+
+	-- Create animation instance using the button node
+	local button_node = gui.get_node("button")
+	local mask_node = gui.get_node("mask") -- Ensure this matches your node name
+	self.animation = panthera.create_gui(animation)
+
+	-- Create button with callback
+	self.button = self.druid:new_button("button")
+	self.button.on_long_click:subscribe(function(...) on_button_long_click(self, ...) end, "Custom long click argument")
+	-- Customize button style for long click/hold
+	self.button.style.AUTOHOLD_TRIGGER = 0.5 -- Time to trigger auto-hold
+	self.button.style.LONGTAP_TIME = 0    -- Time to trigger long click
+
+	-- Subscribe to hold event to update animation progress
+	self.button.on_hold_callback:subscribe(function(_, _, _, time)
+		local start_time = self.button.style.LONGTAP_TIME
+		local max_time = self.button.style.AUTOHOLD_TRIGGER
+		local progress = (time - start_time) / (max_time - start_time)
+
+		-- Update "hold" animation based on progress
+		panthera.set_time(self.animation, "hold", progress)
+	end)
+
+	-- Reset animation when hover or click outside ends
+	self.button.hover.on_mouse_hover:subscribe(function(_, state)
+		if not state then
+			panthera.set_time(self.animation, "hold", 0)
+		end
+	end)
+	self.button.on_click_outside:subscribe(function()
+		panthera.set_time(self.animation, "hold", 0)
+	end)
+end
+
+-- "final" is a required function for the correct Druid workflow
+function final(self)
+	self.druid:final()
+end
+
+-- "update" is used in progress bar, scroll, and timer basic components
+function update(self, dt)
+	self.druid:update(dt)
+end
+
+-- "on_message" is used for specific Druid events, like language change or layout change
+function on_message(self, message_id, message, sender)
+	self.druid:on_message(message_id, message, sender)
+end
+
+-- "on_input" is used in almost all Druid components
+-- The return value from `druid:on_input` is required!
+function on_input(self, action_id, action)
+	return self.druid:on_input(action_id, action)
+end

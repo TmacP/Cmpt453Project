@@ -92,6 +92,8 @@ function koi(id, x, y, angle)
 
 		if distance < 1 then
 			-- If the koi is close enough to the target, set a new random target
+			math.randomseed(os.time())
+			math.random();math.random();math.random();math.random();math.random();
 			koi_data[id].target.x = math.random(0, 360)
 			koi_data[id].target.y = math.random(0, 640)
 		else
@@ -122,18 +124,17 @@ function koi(id, x, y, angle)
 
 		go.set_position(vmath.vector3(x, y, 0), koi_data[id].instance)
 		go.set_rotation(vmath.quat_rotation_z(angle), koi_data[id].instance)
+	-- Create new koi
 	else
-		-- Create new koi
-		local position = vmath.vector3(x, y, 0) -- Assuming z = 0 for 2D position
-		local new_koi = factory.create("#koi_factory", position) -- Create new koi using factory
+		local position = vmath.vector3(x, y, 0)
+		local new_koi = factory.create("#koi_factory", position)
 		koi_data[id].instance = new_koi
 		koi_data[id].x = x
 		koi_data[id].y = y
-		koi_data[id].angle = angle -- Use the passed-in angle here
+		koi_data[id].angle = angle
 		particlefx.play(koi_data[id].instance)
-		
+		-- follow the players koi with camera
 		local client_koi = koi_data[client_id].instance
-
 		msg.post("camera", "follow", { target = hash(client_koi), lerp = 0.7, horizontal = true, vertical = true, immediate = true })
 	end
 end

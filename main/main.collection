@@ -53,3 +53,11 @@ embedded_instances {
     y: 640.0
   }
 }
+embedded_instances {
+  id: "go"
+  data: "components {\n"
+  "  id: \"egg\"\n"
+  "  component: \"/main/egg/egg.gui\"\n"
+  "}\n"
+  ""
+}

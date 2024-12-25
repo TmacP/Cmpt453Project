@@ -20,6 +20,9 @@ developer = Tristen MacPherson
 dependencies#0 = https://github.com/defold/extension-websocket/archive/master.zip
 dependencies#1 = https://github.com/subsoap/defsave/archive/master.zip
 dependencies#2 = https://github.com/britzl/defold-orthographic/archive/master.zip
+dependencies#3 = https://github.com/Insality/druid/archive/refs/tags/1.0.zip
+dependencies#4 = https://github.com/Insality/defold-tweener/archive/refs/tags/3.zip
+dependencies#5 = https://github.com/Insality/panthera/archive/refs/tags/runtime.4.zip
 
 [tilemap]
 max_tile_count = 5000
@@ -34,4 +37,7 @@ show_made_with_defold = 0
 show_fullscreen_button = 0
 show_console_banner = 0
 splash_image = /main/assets/blank.png
+
+[input]
+game_binding = /builtins/input/all.input_bindingc
 
